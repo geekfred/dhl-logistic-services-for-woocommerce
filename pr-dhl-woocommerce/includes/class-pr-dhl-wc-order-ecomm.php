@@ -238,6 +238,11 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 		return $new_item;
 	}
 
+	protected function additional_default_dhl_label_items( $order_id ) {
+		$dhl_label_items['pr_dhl_description'] = $this->get_package_description( $order_id );
+		return $dhl_label_items;
+	}
+
 	// Used by label API to pass handover number
 	protected function get_label_handover_num() {
 		// If handover exists, use it...
@@ -324,6 +329,7 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 		$shop_manager_actions = array();
 
 		$shop_manager_actions = array(
+			'pr_dhl_create_labels'      => __( 'DHL Create Labels', 'pr-shipping-dhl' ),
 			'pr_dhl_handover'      => __( 'DHL Print Handover', 'pr-shipping-dhl' )
 		);
 
@@ -346,6 +352,8 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 	}
 
 	public function process_bulk_actions( $action, $order_ids, $orders_count ) {
+
+		$message = parent::process_bulk_actions( $action, $order_ids, $orders_count );
 
 		if ( 'pr_dhl_handover' === $action ) {
 			$redirect_url  = admin_url( 'edit.php?post_type=shop_order' );

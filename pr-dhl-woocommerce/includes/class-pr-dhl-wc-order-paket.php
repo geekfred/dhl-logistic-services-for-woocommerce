@@ -382,52 +382,6 @@ class PR_DHL_WC_Order_Paket extends PR_DHL_WC_Order {
 
 		return $shop_manager_actions;
 	}
-
-	public function process_bulk_actions( $action, $order_ids, $orders_count ) {
-		$label_count = 0;
-		if ( 'pr_dhl_create_labels' === $action ) {
-			
-			foreach ( $order_ids as $order_id ) {
-				
-				// Create label if one has not been created before
-				if( empty( $this->get_dhl_label_tracking( $order_id ) ) ) {
-					try {
-
-						$dhl_label_items = $this->get_dhl_label_items( $order_id );
-
-						if( empty($dhl_label_items) ) {
-							$this->save_default_dhl_label_items( $order_id );
-						}
-						
-						// Gather args for DHL API call
-						$args = $this->get_label_args( $order_id );
-
-						// Allow third parties to modify the args to the DHL APIs
-						$args = apply_filters('pr_shipping_dhl_label_args', $args, $order_id );
-
-						$dhl_obj = PR_DHL()->get_dhl_factory();
-						$label_tracking_info = $dhl_obj->get_dhl_label( $args );
-
-						$this->save_dhl_label_tracking( $order_id, $label_tracking_info );
-						$tracking_note = $this->get_tracking_link( $label_tracking_info['tracking_number'] );
-						// $label_url = $label_tracking_info['label_url'];
-
-						$order = wc_get_order( $order_id );
-						$order->add_order_note( $tracking_note, 1, true );
-						
-						++$label_count;
-
-					} catch (Exception $e) {
-						throw $e;
-					}
-				}
-			}
-
-			$message = sprintf( __( 'DHL label created for %1$s out of %2$s selected order(s).', 'pr-shipping-dhl' ), $label_count , sizeof($order_ids) );
-		}
-
-		return $message;
-	}
 }
 
 endif;
