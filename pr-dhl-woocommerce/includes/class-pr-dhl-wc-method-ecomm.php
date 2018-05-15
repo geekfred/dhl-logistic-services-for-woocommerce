@@ -100,6 +100,8 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 			PR_DHL()->log_msg( __('DHL Products not displaying - ', 'pr-shipping-dhl') . $e->getMessage() );
 		}
 
+		$weight_units = get_option( 'woocommerce_weight_unit' );
+
 		$this->form_fields = array(
 			'dhl_pickup_dist'     => array(
 				'title'           => __( 'Shipping and Pickup', 'pr-shipping-dhl' ),
@@ -140,7 +142,8 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 					'type'              => 'select',
 					'description'       => __( 'Please select your default DHL eCommerce shipping service for cross-border shippments that you want to offer to your customers (you can always change this within each individual order afterwards).', 'pr-shipping-dhl' ),
 					'desc_tip'          => true,
-					'options'           => $select_dhl_product_int
+					'options'           => $select_dhl_product_int,
+					'class'				=> 'wc-enhanced-select'
 				)
 			);
 		}
@@ -153,7 +156,8 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 					'type'              => 'select',
 					'description'       => __( 'Please select your default DHL eCommerce shipping service for domestic shippments that you want to offer to your customers (you can always change this within each individual order afterwards)', 'pr-shipping-dhl' ),
 					'desc_tip'          => true,
-					'options'           => $select_dhl_product_dom
+					'options'           => $select_dhl_product_dom,
+					'class'				=> 'wc-enhanced-select'
 				)
 			);
 		}
@@ -173,21 +177,80 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 				'type'              => 'select',
 				'description'       => __( 'Prefill the package description with one of the options.', 'pr-shipping-dhl' ),
 				'desc_tip'          => true,
-				'options'           => $select_dhl_desc_default
+				'options'           => $select_dhl_desc_default,
+				'class'				=> 'wc-enhanced-select'
 			),
 			'dhl_label_format' => array(
 				'title'             => __( 'Label Format', 'pr-shipping-dhl' ),
 				'type'              => 'select',
 				'description'       => __( 'Select one of the formats to generate the label in.', 'pr-shipping-dhl' ),
 				'desc_tip'          => true,
-				'options'           => array( 'PDF' => 'PDF', 'PNG' => 'PNG', 'ZPL' => 'ZPL' )
+				'options'           => array( 'PDF' => 'PDF', 'PNG' => 'PNG', 'ZPL' => 'ZPL' ),
+				'class'				=> 'wc-enhanced-select'
+			),
+			'dhl_label_size' => array(
+				'title'             => __( 'Label Size', 'pr-shipping-dhl' ),
+				'type'              => 'select',
+				'description'       => __( 'Select one of the formats to generate the label in.', 'pr-shipping-dhl' ),
+				'desc_tip'          => true,
+				'options'           => array( 'PDF' => 'PDF', 'PNG' => 'PNG', 'ZPL' => 'ZPL' ),
+				'class'				=> 'wc-enhanced-select'
+			),
+			'dhl_label_page' => array(
+				'title'             => __( 'Page Size', 'pr-shipping-dhl' ),
+				'type'              => 'select',
+				'description'       => __( 'Select one of the formats to generate the label in.', 'pr-shipping-dhl' ),
+				'desc_tip'          => true,
+				'options'           => array( 'PDF' => 'PDF', 'PNG' => 'PNG', 'ZPL' => 'ZPL' ),
+				'class'				=> 'wc-enhanced-select'
+			),
+			'dhl_label_layout' => array(
+				'title'             => __( 'Label Layout', 'pr-shipping-dhl' ),
+				'type'              => 'select',
+				'description'       => __( 'Select one of the formats to generate the label in.', 'pr-shipping-dhl' ),
+				'desc_tip'          => true,
+				'options'           => array( 'PDF' => 'PDF', 'PNG' => 'PNG', 'ZPL' => 'ZPL' ),
+				'class'				=> 'wc-enhanced-select'
 			),
 			'dhl_handover_type' => array(
 				'title'             => __( 'Handover', 'pr-shipping-dhl' ),
 				'type'              => 'select',
 				'description'       => __( 'Select whether to drop-off the packages to DHL or have them pick them up.', 'pr-shipping-dhl' ),
 				'desc_tip'          => true,
-				'options'           => array( 'dropoff' => 'Drop-Off', 'pickup' => 'Pick-Up')
+				'options'           => array( 'dropoff' => 'Drop-Off', 'pickup' => 'Pick-Up'),
+				'class'				=> 'wc-enhanced-select'
+			),
+			'dhl_add_weight' => array(
+				'title'             => sprintf( __( 'Additional Weight (%s)', 'pr-shipping-dhl' ), $weight_units),
+				'type'              => 'text',
+				'description'       => __( 'Add extra weight in addition to the products to consider the box weight.', 'pr-shipping-dhl' ),
+				'desc_tip'          => true,
+				'default'           => '',
+				'placeholder'		=> '',
+				'class'				=> 'wc_input_decimal'
+			),
+			'dhl_order_note' => array(
+				'title'             => __( 'Order Note', 'pr-shipping-dhl' ),
+				'type'              => 'checkbox',
+				'label'             => __( 'Include Order Note', 'pr-shipping-dhl' ),
+				'default'           => 'yes',
+				'description'       => __( 'Please, tick here if you want to test the plug-in installation against the DHL Sandbox Environment. Labels generated via Sandbox cannot be used for shipping and you need to enter your client ID and client secret for the Sandbox environment instead of the ones for production!', 'pr-shipping-dhl' ),
+				'desc_tip'          => true,
+			),
+			'dhl_tracking_note' => array(
+				'title'             => __( 'Tracking Note', 'pr-shipping-dhl' ),
+				'type'              => 'checkbox',
+				'label'             => __( 'Make Private', 'pr-shipping-dhl' ),
+				'default'           => 'no',
+				'description'       => __( 'Please, tick here if you want to test the plug-in installation against the DHL Sandbox Environment. Labels generated via Sandbox cannot be used for shipping and you need to enter your client ID and client secret for the Sandbox environment instead of the ones for production!', 'pr-shipping-dhl' ),
+				'desc_tip'          => true,
+			),
+			'dhl_tracking_note_txt' => array(
+				'title'             => __( 'Tracking Note', 'pr-shipping-dhl' ),
+				'type'              => 'textarea',
+				'description'       => __( 'The client ID (a 36 digits alphanumerical string made from 5 blocks) is required for authentication and is provided to you within your contract.', 'pr-shipping-dhl' ),
+				'desc_tip'          => true,
+				'default'           => 'I am a tracking note'
 			),
 			'dhl_api'           => array(
 				'title'           => __( 'API Settings', 'pr-shipping-dhl' ),
