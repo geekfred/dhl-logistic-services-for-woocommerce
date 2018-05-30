@@ -8,10 +8,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label {
 
 	private $dhl_label_format = 'PDF';
-
-	const PR_DHL_LABEL_SIZE = '4x6'; // must be lowercase 'x'
-	const PR_DHL_PAGE_SIZE = 'A4';
-	const PR_DHL_LAYOUT = '1x1';
+	private $dhl_label_size = '4x6'; // must be lowercase 'x'
+	private $dhl_label_page = 'A4';
+	private $dhl_label_layout = '1x1';
+	// const PR_DHL_LABEL_SIZE =  
+	// const PR_DHL_PAGE_SIZE = 
+	// const PR_DHL_LAYOUT = 
 	const PR_DHL_AUTO_CLOSE = '1';
 
 	private $args = array();
@@ -78,7 +80,7 @@ class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label 
 					$this->validate( $value );
 					break;
 				case 'hs_code':
-					$this->validate( $value, 'string', 4, 11 );
+					$this->validate( $value, 'string', 4, 20 );
 					break;
 				default:
 					parent::validate_field( $key, $value );
@@ -132,6 +134,18 @@ class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label 
 
 		if ( ! empty( $args['dhl_settings']['label_format'] ) ) {
 			$this->dhl_label_format = $args['dhl_settings']['label_format'];
+		}
+
+		if ( ! empty( $args['dhl_settings']['label_size'] ) ) {
+			$this->dhl_label_size = $args['dhl_settings']['label_size'];
+		}
+
+		if ( ! empty( $args['dhl_settings']['label_page'] ) ) {
+			$this->dhl_label_page = $args['dhl_settings']['label_page'];
+		}
+
+		if ( ! empty( $args['dhl_settings']['label_layout'] ) ) {
+			$this->dhl_label_layout = $args['dhl_settings']['label_layout'];
 		}
 
 		if ( empty( $args['order_details']['dhl_product'] )) {
@@ -226,9 +240,9 @@ class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label 
 	protected function set_query_string() {
 		$dhl_label_query_string = 
 			array( 'format' => $this->dhl_label_format,
-					'labelSize' => self::PR_DHL_LABEL_SIZE,
-					'pageSize' => self::PR_DHL_PAGE_SIZE,
-					'layout' => self::PR_DHL_LAYOUT,
+					'labelSize' => $this->dhl_label_size,
+					'pageSize' => $this->dhl_label_page,
+					'layout' => $this->dhl_label_layout,
 					'autoClose' => self::PR_DHL_AUTO_CLOSE );
 		
 		$this->query_string = http_build_query($dhl_label_query_string);
@@ -271,11 +285,24 @@ class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label 
 				$package_desc = substr( $this->args['order_details']['description'], 0, 50 );
 			}
 
-			/*
-				NOT SETTING:
-					'consigneeAddress' => 'address3'
+			if( strlen( $this->args['shipping_address']['address_1'] ) > 50 ) {
+				$consignee_address_1 = substr( $this->args['shipping_address']['address_1'], 0, 50);
 
-			*/	
+				$this->args['shipping_address']['address_2'] = substr( $this->args['shipping_address']['address_1'], 50) . ' ' . $this->args['shipping_address']['address_2'];
+
+			} else {
+				$consignee_address_1 = $this->args['shipping_address']['address_1'];
+			}
+
+			$consignee_address_3 = '';
+			if( strlen( $this->args['shipping_address']['address_2'] ) > 50 ) {
+				$consignee_address_2 = substr( $this->args['shipping_address']['address_2'], 0, 50);
+
+				$consignee_address_3 = substr( $this->args['shipping_address']['address_2'], 50, 50);
+			} else {
+				$consignee_address_2 = $this->args['shipping_address']['address_2'];
+			}
+
 			$dhl_label_body = 
 				array( 'shipments' => 
 					array (
@@ -288,8 +315,9 @@ class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label 
 											'consigneeAddress' =>
 												array( 'name' => $this->args['shipping_address']['name'],
 														'companyName' => $this->args['shipping_address']['company'],
-														'address1' => $this->args['shipping_address']['address_1'],
-														'address2' => $this->args['shipping_address']['address_2'],
+														'address1' => $consignee_address_1,
+														'address2' => $consignee_address_2,
+														'address3' => $consignee_address_3,
 														'city' => $this->args['shipping_address']['city'],
 														'postalCode' => $this->args['shipping_address']['postcode'],
 														'state' => $this->args['shipping_address']['state'],
@@ -307,7 +335,9 @@ class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label 
 														'packageDesc' => $package_desc,
 														'packageId' => $package_id,
 														'weight' => round( floatval( $this->args['order_details']['weight'] ), 2), 
-														'weightUom' => strtoupper( $this->args['order_details']['weightUom'] )
+														'weightUom' => strtoupper( $this->args['order_details']['weightUom'] ),
+														'billingRef1' => substr( $this->args['order_details']['order_note'], 0, 50),
+														'billingRef2' => substr( $this->args['order_details']['order_note'], 50, 25)
 														),
 											'customsDetails' => $customsDetails
 										) 

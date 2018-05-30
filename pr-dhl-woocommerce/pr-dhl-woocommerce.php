@@ -482,8 +482,8 @@ class PR_DHL_WC {
 
 		try {
 
-		  $shipping_dhl_settings = PR_DHL()->get_shipping_dhl_settings();
-		  $dhl_obj = PR_DHL()->get_dhl_factory();
+		  $shipping_dhl_settings = $this->get_shipping_dhl_settings();
+		  $dhl_obj = $this->get_dhl_factory();
 
 		} catch (Exception $e) {
 		    return;

@@ -183,7 +183,7 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 			'dhl_label_format' => array(
 				'title'             => __( 'Label Format', 'pr-shipping-dhl' ),
 				'type'              => 'select',
-				'description'       => __( 'Select one of the formats to generate the label in.', 'pr-shipping-dhl' ),
+				'description'       => __( 'Select one of the formats to generate the shipping label in.', 'pr-shipping-dhl' ),
 				'desc_tip'          => true,
 				'options'           => array( 'PDF' => 'PDF', 'PNG' => 'PNG', 'ZPL' => 'ZPL' ),
 				'class'				=> 'wc-enhanced-select'
@@ -191,25 +191,25 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 			'dhl_label_size' => array(
 				'title'             => __( 'Label Size', 'pr-shipping-dhl' ),
 				'type'              => 'select',
-				'description'       => __( 'Select one of the formats to generate the label in.', 'pr-shipping-dhl' ),
+				'description'       => __( 'Select the shipping label size.', 'pr-shipping-dhl' ),
 				'desc_tip'          => true,
-				'options'           => array( 'PDF' => 'PDF', 'PNG' => 'PNG', 'ZPL' => 'ZPL' ),
+				'options'           => array( '4x6' => '4x6', '4x4' => '4x4' ),
 				'class'				=> 'wc-enhanced-select'
 			),
 			'dhl_label_page' => array(
 				'title'             => __( 'Page Size', 'pr-shipping-dhl' ),
 				'type'              => 'select',
-				'description'       => __( 'Select one of the formats to generate the label in.', 'pr-shipping-dhl' ),
+				'description'       => __( 'Select the shipping label page size.', 'pr-shipping-dhl' ),
 				'desc_tip'          => true,
-				'options'           => array( 'PDF' => 'PDF', 'PNG' => 'PNG', 'ZPL' => 'ZPL' ),
+				'options'           => array( 'A4' => 'A4', '400x600' => '400x600', '400x400' => '400x400' ),
 				'class'				=> 'wc-enhanced-select'
 			),
 			'dhl_label_layout' => array(
 				'title'             => __( 'Label Layout', 'pr-shipping-dhl' ),
 				'type'              => 'select',
-				'description'       => __( 'Select one of the formats to generate the label in.', 'pr-shipping-dhl' ),
+				'description'       => __( 'Select the shipping label layout.', 'pr-shipping-dhl' ),
 				'desc_tip'          => true,
-				'options'           => array( 'PDF' => 'PDF', 'PNG' => 'PNG', 'ZPL' => 'ZPL' ),
+				'options'           => array( '1x1' => '1x1', '4x1' => '4x1' ),
 				'class'				=> 'wc-enhanced-select'
 			),
 			'dhl_handover_type' => array(
@@ -220,21 +220,29 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 				'options'           => array( 'dropoff' => 'Drop-Off', 'pickup' => 'Pick-Up'),
 				'class'				=> 'wc-enhanced-select'
 			),
+			'dhl_add_weight_type' => array(
+				'title'             => __( 'Additional Weight Type', 'pr-shipping-dhl' ),
+				'type'              => 'select',
+				'description'       => __( 'Select whether to add an absolute weight amount or percentage amount to the total product weight.', 'pr-shipping-dhl' ),
+				'desc_tip'          => true,
+				'options'           => array( 'absolute' => 'Absolute', 'percentage' => 'Percentage'),
+				'class'				=> 'wc-enhanced-select'
+			),
 			'dhl_add_weight' => array(
-				'title'             => sprintf( __( 'Additional Weight (%s)', 'pr-shipping-dhl' ), $weight_units),
+				'title'             => sprintf( __( 'Additional Weight (%s or %%)', 'pr-shipping-dhl' ), $weight_units),
 				'type'              => 'text',
-				'description'       => __( 'Add extra weight in addition to the products to consider the box weight.', 'pr-shipping-dhl' ),
+				'description'       => __( 'Add extra weight in addition to the products.  Either an absolute amount or percentage (e.g. 10 for 10%).', 'pr-shipping-dhl' ),
 				'desc_tip'          => true,
 				'default'           => '',
 				'placeholder'		=> '',
 				'class'				=> 'wc_input_decimal'
 			),
 			'dhl_order_note' => array(
-				'title'             => __( 'Order Note', 'pr-shipping-dhl' ),
+				'title'             => __( 'Order Notes', 'pr-shipping-dhl' ),
 				'type'              => 'checkbox',
-				'label'             => __( 'Include Order Note', 'pr-shipping-dhl' ),
-				'default'           => 'yes',
-				'description'       => __( 'Please, tick here if you want to test the plug-in installation against the DHL Sandbox Environment. Labels generated via Sandbox cannot be used for shipping and you need to enter your client ID and client secret for the Sandbox environment instead of the ones for production!', 'pr-shipping-dhl' ),
+				'label'             => __( 'Include Order Notes', 'pr-shipping-dhl' ),
+				'default'           => 'no',
+				'description'       => __( 'Please, tick here if you want to send the customer "Order Notes" to be added to the label.', 'pr-shipping-dhl' ),
 				'desc_tip'          => true,
 			),
 			'dhl_tracking_note' => array(
@@ -242,15 +250,15 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 				'type'              => 'checkbox',
 				'label'             => __( 'Make Private', 'pr-shipping-dhl' ),
 				'default'           => 'no',
-				'description'       => __( 'Please, tick here if you want to test the plug-in installation against the DHL Sandbox Environment. Labels generated via Sandbox cannot be used for shipping and you need to enter your client ID and client secret for the Sandbox environment instead of the ones for production!', 'pr-shipping-dhl' ),
+				'description'       => __( 'Please, tick here to not send an email to the customer when the tracking number is added to the order.', 'pr-shipping-dhl' ),
 				'desc_tip'          => true,
 			),
 			'dhl_tracking_note_txt' => array(
 				'title'             => __( 'Tracking Note', 'pr-shipping-dhl' ),
 				'type'              => 'textarea',
-				'description'       => __( 'The client ID (a 36 digits alphanumerical string made from 5 blocks) is required for authentication and is provided to you within your contract.', 'pr-shipping-dhl' ),
+				'description'       => __( 'Set the custom text when adding the tracking number to the order notes. {tracking-link} is where the tracking number will be set.', 'pr-shipping-dhl' ),
 				'desc_tip'          => true,
-				'default'           => 'I am a tracking note'
+				'default'           => __( 'DHL Tracking Number: {tracking-link}', 'pr-shipping-dhl')
 			),
 			'dhl_api'           => array(
 				'title'           => __( 'API Settings', 'pr-shipping-dhl' ),

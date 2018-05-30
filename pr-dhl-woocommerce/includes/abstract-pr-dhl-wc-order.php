@@ -16,12 +16,16 @@ if ( ! class_exists( 'PR_DHL_WC_Order' ) ) :
 
 abstract class PR_DHL_WC_Order {
 	
+	protected $shipping_dhl_settings = array();
+
 	/**
 	 * Init and hook in the integration.
 	 */
 	public function __construct( ) {
 		$this->define_constants();
 		$this->init_hooks();
+
+		$this->shipping_dhl_settings = PR_DHL()->get_shipping_dhl_settings();
 	}
 
 	protected function define_constants() {
@@ -232,14 +236,16 @@ abstract class PR_DHL_WC_Order {
 			$label_tracking_info = $dhl_obj->get_dhl_label( $args );
 
 			$this->save_dhl_label_tracking( $order_id, $label_tracking_info );
-			$tracking_note = $this->get_tracking_link( $label_tracking_info['tracking_number'] );
+			$tracking_note = $this->get_tracking_note( $order_id );
+			$tracking_note_type = $this->get_tracking_note_type();
 			$label_url = $label_tracking_info['label_url'];
 
 			wp_send_json( array( 
 				'download_msg' => __('Your DHL label is ready to download, click the "Download Label" button above"', 'pr-shipping-dhl'),
 				'button_txt' => PR_DHL_BUTTON_LABEL_PRINT,
 				'label_url' => $label_url,
-				'tracking_note'	  => $tracking_note
+				'tracking_note'	  => $tracking_note,
+				'tracking_note_type' => $tracking_note_type,
 				) );
 
 			do_action( 'pr_shipping_dhl_label_created', $order_id );
@@ -303,14 +309,43 @@ abstract class PR_DHL_WC_Order {
 		return $label_url;
 	}
 
-	protected function get_tracking_link( $tracking_num ) {
-		if( empty( $tracking_num ) ) {
+	protected function get_tracking_note( $order_id ) {
+		
+		if( ! empty( $this->shipping_dhl_settings['dhl_tracking_note_txt'] ) ) {
+			$tracking_note = $this->shipping_dhl_settings['dhl_tracking_note_txt'];
+		} else {
+			$tracking_note = __( 'DHL Tracking Number: {tracking-link}', 'pr-shipping-dhl' );
+		}
+		
+		$tracking_link = $this->get_tracking_link( $order_id );
+		
+		$tracking_note_new = str_replace('{tracking-link}', $tracking_link, $tracking_note, $count);
+		
+		if( $count == 0 ) {
+			$tracking_note_new = $tracking_note . ' ' . $tracking_link;
+		}
+		
+		return $tracking_note_new;
+	}
+
+	protected function get_tracking_link( $order_id ) {
+		
+		$label_tracking_info = $this->get_dhl_label_tracking( $order_id );
+		if( empty( $label_tracking_info['tracking_number'] ) ) {
 			return '';
 		}
 
-		$tracking_note = sprintf( __( '<label>DHL Tracking Number: </label><a href="%s%s" target="_blank">%s</a>', 'my-text-domain' ), PR_DHL_ECOMM_TRACKING_URL, $tracking_num, $tracking_num);
-		
-		return $tracking_note;
+		return sprintf( __( '<a href="%s%s" target="_blank">%s</a>', 'my-text-domain' ), $this->get_tracking_url(), $tracking_num, $tracking_num);
+	}
+
+	abstract protected function get_tracking_url();
+
+	protected function get_tracking_note_type() {
+		if( isset( $this->shipping_dhl_settings['dhl_tracking_note'] ) && ( $this->shipping_dhl_settings['dhl_tracking_note'] == 'no' ) ) {
+			return 'customer';
+		} else {
+			return '';
+		}
 	}
 
 	/**
@@ -377,7 +412,7 @@ abstract class PR_DHL_WC_Order {
 		// Set default DHL product
 		$dhl_label_items['pr_dhl_product'] = $this->get_default_dhl_product( $order_id );
 		// Save default items
-		error_log(print_r($dhl_label_items,true));
+		// error_log(print_r($dhl_label_items,true));
 		$this->save_dhl_label_items( $order_id, $dhl_label_items );
 	}
 
@@ -393,11 +428,11 @@ abstract class PR_DHL_WC_Order {
 	}
 
 	protected function get_default_dhl_product( $order_id ) {
-		$shipping_dhl_settings = PR_DHL()->get_shipping_dhl_settings();
+		// $shipping_dhl_settings = PR_DHL()->get_shipping_dhl_settings();
 		if( $this->is_shipping_domestic( $order_id ) ) {
-			return $shipping_dhl_settings['dhl_default_product_dom'];
+			return $this->shipping_dhl_settings['dhl_default_product_dom'];
 		} else {
-			return $shipping_dhl_settings['dhl_default_product_int'];
+			return $this->shipping_dhl_settings['dhl_default_product_int'];
 		}
 	}
 
@@ -418,6 +453,15 @@ abstract class PR_DHL_WC_Order {
 			$product_weight = $product->get_weight();
 			if( $product_weight ) {
 				$total_weight += ( $item['qty'] * $product_weight );
+			}
+		}
+
+		if ( ! empty( $this->shipping_dhl_settings['dhl_add_weight'] ) ) {
+
+			if ( $this->shipping_dhl_settings['dhl_add_weight_type'] == 'absolute' ) {
+				$total_weight += $this->shipping_dhl_settings['dhl_add_weight'];
+			} elseif ( $this->shipping_dhl_settings['dhl_add_weight_type'] == 'percentage' ) {
+				$total_weight += $total_weight * ( $this->shipping_dhl_settings['dhl_add_weight'] / 100 );
 			}
 		}
 
@@ -776,7 +820,7 @@ abstract class PR_DHL_WC_Order {
 						$label_tracking_info = $dhl_obj->get_dhl_label( $args );
 
 						$this->save_dhl_label_tracking( $order_id, $label_tracking_info );
-						$tracking_note = $this->get_tracking_link( $label_tracking_info['tracking_number'] );
+						$tracking_note = $this->get_tracking_note( $order_id );
 						// $label_url = $label_tracking_info['label_url'];
 
 						$order = wc_get_order( $order_id );

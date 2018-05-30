@@ -105,7 +105,7 @@ jQuery( function( $ ) {
 						var data = {
 							action:                   'woocommerce_add_order_note',
 							post_id:                  woocommerce_admin_meta_boxes.post_id,
-							note_type: 				  'customer',
+							note_type: 				  response.tracking_note_type,
 							note:					  response.tracking_note,
 							security:                 woocommerce_admin_meta_boxes.add_order_note_nonce
 						};
