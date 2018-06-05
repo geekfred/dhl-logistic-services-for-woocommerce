@@ -58,9 +58,16 @@ class PR_DHL_WC {
 	/**
 	 * DHL Shipping Order for label and tracking.
 	 *
-	 * @var PR_DHL_WC__Product
+	 * @var PR_DHL_WC_Product
 	 */
 	protected $shipping_dhl_product = null;
+
+	/**
+	 * DHL Shipping Notice for user optin
+	 *
+	 * @var PR_DHL_WC_Notice
+	 */
+	protected $shipping_dhl_notice = null;
 
 	/**
 	 * DHL Shipping Order for label and tracking.
@@ -203,6 +210,7 @@ class PR_DHL_WC {
 					$this->shipping_dhl_frontend = new PR_DHL_Front_End_Paket();
 				} elseif( $dhl_obj->is_dhl_ecomm() ) {
 					$this->shipping_dhl_order = new PR_DHL_WC_Order_Ecomm();
+					$this->shipping_dhl_notice = new PR_DHL_WC_Notice();
 				}
 				
 			} catch (Exception $e) {
