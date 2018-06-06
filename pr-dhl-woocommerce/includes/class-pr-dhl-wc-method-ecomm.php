@@ -257,7 +257,7 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 				'title'             => __( 'Tracking Note', 'pr-shipping-dhl' ),
 				'type'              => 'textarea',
 				'description'       => __( 'Set the custom text when adding the tracking number to the order notes. {tracking-link} is where the tracking number will be set.', 'pr-shipping-dhl' ),
-				'desc_tip'          => true,
+				'desc_tip'          => false,
 				'default'           => __( 'DHL Tracking Number: {tracking-link}', 'pr-shipping-dhl')
 			),
 			'dhl_api'           => array(

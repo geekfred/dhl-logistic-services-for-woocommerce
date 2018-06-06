@@ -49,10 +49,10 @@ class PR_DHL_WC_Notice {
 		if ( ! get_transient('dhl_dismiss_notice' ) && ! get_option( 'dhl_user_optedin' ) ) { 
 		?>
 				<div id="dhl-optin-notice" class="notice notice-warning is-dismissible">
-					<?php _e( 'Get more info', 'pr-shipping-dhl' ); ?>
-					<form class="spacer" action="" method="post">
+					<form class="dhl-optin-notice-form" action="" method="post">
+						<label for="dhl-optin-user"><?php _e( 'Would you like DHL to contact you to help setup the Official DHL plugin?', 'pr-shipping-dhl' ); ?></label>
 						<input name="dhl-optin-user" type="hidden" value="1" />
-						<input class="button-primary" type="submit" value="Yes" />
+						<input class="button-primary" type="submit" value="<?php _e( 'Yes', 'pr-shipping-dhl' ); ?>" />
 					</form>
 				</div>
 		<?php
@@ -68,7 +68,7 @@ class PR_DHL_WC_Notice {
 	}
 
 	public function dhl_optin_user() {
-		error_log(print_r($_POST,true));
+		// error_log(print_r($_POST,true));
 
 		if ( isset( $_POST['dhl-optin-user'] ) ) {
 			// send email
