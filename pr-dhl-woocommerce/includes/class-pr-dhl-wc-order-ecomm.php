@@ -146,14 +146,18 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 			switch ($dhl_desc_default) {
 				case 'product_cat':
 					$product_terms = get_the_terms( $product_id, 'product_cat' );
-					foreach ($product_terms as $key => $product_term) {
-						array_push( $desc_array, $product_term->name );
+					if ( $product_terms ) {
+						foreach ($product_terms as $key => $product_term) {
+							array_push( $desc_array, $product_term->name );
+						}
 					}
 					break;
 				case 'product_tag':
 					$product_terms = get_the_terms( $product_id, 'product_tag' );
-					foreach ($product_terms as $key => $product_term) {
-						array_push( $desc_array, $product_term->name );
+					if ( $product_terms ) {
+						foreach ($product_terms as $key => $product_term) {
+							array_push( $desc_array, $product_term->name );
+						}
 					}
 					break;
 				case 'product_name':
@@ -235,9 +239,17 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 		return $new_item;
 	}
 
-	protected function additional_default_dhl_label_items( $order_id ) {
-		$dhl_label_items['pr_dhl_description'] = $this->get_package_description( $order_id );
-		return $dhl_label_items;
+	protected function save_default_dhl_label_items( $order_id ) {
+
+		$dhl_label_items = $this->get_dhl_label_items( $order_id );
+		
+		if( empty( $dhl_label_items['pr_dhl_description'] ) ) {
+			$dhl_label_items['pr_dhl_description'] = $this->get_package_description( $order_id );
+		}
+
+		$this->save_dhl_label_items( $order_id, $dhl_label_items );
+
+		parent::save_default_dhl_label_items( $order_id );
 	}
 
 	// Used by label API to pass handover number
@@ -543,6 +555,81 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 		}
 
 		return $vars;
+	}
+
+	protected function merge_label_files_png( $files ) {
+
+		if( empty( $files ) ) {
+			throw new Exception( __('There are no files to merge.', 'pr-shipping-dhl') );
+		}
+
+		if( ! class_exists('Imagick') ) {
+			throw new Exception( __('"Imagick" must be installed on the server to merge png files.', 'pr-shipping-dhl') );
+		}
+
+		$all = new Imagick();
+		foreach ($files as $key => $value) {
+
+			if ( ! file_exists( $value ) ) {
+				// throw new Exception( __('File does not exist', 'pr-shipping-dhl') );
+				continue;
+			}
+
+			$ext = pathinfo($value, PATHINFO_EXTENSION);
+			// error_log($ext);
+			if ( stripos($ext, 'png') === false) {
+				throw new Exception( __('Not all the file formats are the same.', 'pr-shipping-dhl') );
+			}
+
+			$im = new Imagick($value);       
+    		$all->addImage( $im );
+		}
+
+		$filename = 'dhl-label-bulk-' . time() . '.png';
+		$file_bulk_path = PR_DHL()->get_dhl_label_folder_dir() . $filename;
+		$file_bulk_url = PR_DHL()->get_dhl_label_folder_url() . $filename;
+
+		/* Append the images into one */
+		$all->resetIterator();
+		$combined = $all->appendImages(true);
+		// $ima = $im1->appendImages(true); 
+		$combined->setImageFormat('png');
+		$combined->writeimage( $file_bulk_path );
+		
+		return array( 'file_bulk_path' => $file_bulk_path, 'file_bulk_url' => $file_bulk_url);
+	}
+
+	protected function merge_label_files_zpl( $files ) {
+
+		if( empty( $files ) ) {
+			throw new Exception( __('There are no files to merge.', 'pr-shipping-dhl') );
+		}
+
+		$files_content = '';
+		foreach ($files as $key => $value) {
+
+			if ( ! file_exists( $value ) ) {
+				// throw new Exception( __('File does not exist', 'pr-shipping-dhl') );
+				continue;
+			}
+
+			$ext = pathinfo($value, PATHINFO_EXTENSION);
+			// error_log($ext);
+			if ( stripos($ext, 'zpl') === false) {
+				throw new Exception( __('Not all the file formats are the same.', 'pr-shipping-dhl') );
+			}
+
+			$files_content .= file_get_contents( $value );
+		}
+
+		$filename = 'dhl-label-bulk-' . time() . '.zpl';
+		$file_bulk_path = PR_DHL()->get_dhl_label_folder_dir() . $filename;
+		$file_bulk_url = PR_DHL()->get_dhl_label_folder_url() . $filename;
+		
+		$fp1 = fopen($file_bulk_path, 'a+');
+		fwrite($fp1, $files_content);
+
+		return array( 'file_bulk_path' => $file_bulk_path, 'file_bulk_url' => $file_bulk_url);
 	}
 }
 

@@ -205,7 +205,7 @@ abstract class PR_DHL_WC_Order {
 			}
 		}		
 
-		if( $args ) {
+		if( isset( $args ) ) {
 			$this->save_dhl_label_items( $post_id, $args );
 			return $args;
 		}
@@ -335,7 +335,7 @@ abstract class PR_DHL_WC_Order {
 			return '';
 		}
 
-		return sprintf( __( '<a href="%s%s" target="_blank">%s</a>', 'my-text-domain' ), $this->get_tracking_url(), $tracking_num, $tracking_num);
+		return sprintf( __( '<a href="%s%s" target="_blank">%s</a>', 'my-text-domain' ), $this->get_tracking_url(), $label_tracking_info['tracking_number'], $label_tracking_info['tracking_number']);
 	}
 
 	abstract protected function get_tracking_url();
@@ -405,30 +405,32 @@ abstract class PR_DHL_WC_Order {
 		return get_post_meta( $order_id, '_pr_shipment_dhl_label_items', true );
 	}
 
-	protected function save_default_dhl_label_items( $order_id ) {
-		$dhl_label_items = $this->additional_default_dhl_label_items( $order_id );
-		// Set default weight
-		$dhl_label_items['pr_dhl_weight'] = $this->calculate_order_weight( $order_id );
-		// Set default DHL product
-		$dhl_label_items['pr_dhl_product'] = $this->get_default_dhl_product( $order_id );
-		// Save default items
-		// error_log(print_r($dhl_label_items,true));
-		$this->save_dhl_label_items( $order_id, $dhl_label_items );
-	}
-
 	/*
-	 * Used to override default label items in children e.g. ECOMMERCE DESCRIPTION FIELD!
+	 * Save default fields, used by bulk create label
 	 *
 	 * @param int  $order_id  Order ID
 	 *
 	 * @return default label items
 	 */
-	protected function additional_default_dhl_label_items( $order_id ) {
-		return array();
+	protected function save_default_dhl_label_items( $order_id ) {
+		$dhl_label_items = $this->get_dhl_label_items( $order_id );
+
+		if( empty( $dhl_label_items['pr_dhl_weight'] ) ) {
+			// Set default weight
+			$dhl_label_items['pr_dhl_weight'] = $this->calculate_order_weight( $order_id );
+		}
+
+		if( empty( $dhl_label_items['pr_dhl_product'] ) ) {
+			// Set default DHL product
+			$dhl_label_items['pr_dhl_product'] = $this->get_default_dhl_product( $order_id );
+		}
+
+		// Save default items
+		$this->save_dhl_label_items( $order_id, $dhl_label_items );
 	}
 
 	protected function get_default_dhl_product( $order_id ) {
-		// $shipping_dhl_settings = PR_DHL()->get_shipping_dhl_settings();
+		// $this->shipping_dhl_settings = PR_DHL()->get_shipping_dhl_settings();
 		if( $this->is_shipping_domestic( $order_id ) ) {
 			return $this->shipping_dhl_settings['dhl_default_product_dom'];
 		} else {
@@ -550,7 +552,7 @@ abstract class PR_DHL_WC_Order {
 		$shipping_address['name'] = '';
 		if ( isset( $shipping_address['first_name'] ) ) {
 			$shipping_address['name'] = $shipping_address['first_name'];
-			unset( $shipping_address['first_name'] );
+			// unset( $shipping_address['first_name'] );
 		}
 
 		if ( isset( $shipping_address['last_name'] ) ) {
@@ -559,7 +561,7 @@ abstract class PR_DHL_WC_Order {
 			}
 
 			$shipping_address['name'] .= $shipping_address['last_name'];
-			unset( $shipping_address['last_name'] );
+			// unset( $shipping_address['last_name'] );
 		}
 		
 		// If not USA, then change state from ISO code to name
@@ -580,6 +582,11 @@ abstract class PR_DHL_WC_Order {
 			}
 		}
 
+		// Check if post number exists then send over
+		if( $shipping_dhl_postnum = get_post_meta( $order_id, '_shipping_dhl_postnum', true ) ) {
+			$shipping_address['dhl_postnum'] = $shipping_dhl_postnum;
+		}
+
 		$args['shipping_address'] = $shipping_address;
 
 		// Get order item specific data
@@ -587,6 +594,9 @@ abstract class PR_DHL_WC_Order {
 		$args['items'] = array();
 		foreach ($ordered_items as $key => $item) {
 			$new_item['qty'] = $item['qty'];
+			// Get 1 item value not total items, based on ordered items in case currency is different that set product price
+			$new_item['item_value'] = ( $item['line_total'] / $item['qty'] );
+
 			$product = wc_get_product( $item['product_id'] );
 
 		    $country_value = get_post_meta( $item['product_id'], '_dhl_manufacture_country', true );
@@ -606,7 +616,7 @@ abstract class PR_DHL_WC_Order {
 				$product_variation = wc_get_product($item['variation_id']);
 				// Ensure id is string and not int
 				$new_item['sku'] = empty( $product_variation->get_sku() ) ? strval( $item['variation_id'] ) : $product_variation->get_sku();
-				$new_item['item_value'] = $product_variation->get_price();
+				// $new_item['item_value'] = $product_variation->get_price();
 				$new_item['item_weight'] = $product_variation->get_weight();
 
 				$product_attribute = wc_get_product_variation_attributes($item['variation_id']);
@@ -615,7 +625,7 @@ abstract class PR_DHL_WC_Order {
 			} else {
 				// Ensure id is string and not int
 				$new_item['sku'] = empty( $product->get_sku() ) ? strval( $item['product_id'] ) : $product->get_sku();
-				$new_item['item_value'] = $product->get_price();
+				// $new_item['item_value'] = $product->get_price();
 				$new_item['item_weight'] = $product->get_weight();
 			}
 
@@ -796,48 +806,115 @@ abstract class PR_DHL_WC_Order {
 	
 	public function process_bulk_actions( $action, $order_ids, $orders_count ) {
 		$label_count = 0;
+		$merge_files = array();
+
 		if ( 'pr_dhl_create_labels' === $action ) {
 			
-			foreach ( $order_ids as $order_id ) {
-				
-				// Create label if one has not been created before
-				if( empty( $this->get_dhl_label_tracking( $order_id ) ) ) {
-					try {
+			try {
+				foreach ( $order_ids as $order_id ) {
+					
+					// Create label if one has not been created before
+					if( empty( $label_tracking_info = $this->get_dhl_label_tracking( $order_id ) ) ) {
 
-						$dhl_label_items = $this->get_dhl_label_items( $order_id );
-
-						if( empty($dhl_label_items) ) {
 							$this->save_default_dhl_label_items( $order_id );
-						}
-						
-						// Gather args for DHL API call
-						$args = $this->get_label_args( $order_id );
 
-						// Allow third parties to modify the args to the DHL APIs
-						$args = apply_filters('pr_shipping_dhl_label_args', $args, $order_id );
+							$dhl_label_items = $this->get_dhl_label_items( $order_id );
 
-						$dhl_obj = PR_DHL()->get_dhl_factory();
-						$label_tracking_info = $dhl_obj->get_dhl_label( $args );
+							// Gather args for DHL API call
+							$args = $this->get_label_args( $order_id );
 
-						$this->save_dhl_label_tracking( $order_id, $label_tracking_info );
-						$tracking_note = $this->get_tracking_note( $order_id );
-						// $label_url = $label_tracking_info['label_url'];
+							// Allow third parties to modify the args to the DHL APIs
+							$args = apply_filters('pr_shipping_dhl_label_args', $args, $order_id );
 
-						$order = wc_get_order( $order_id );
-						$order->add_order_note( $tracking_note, 1, true );
-						
-						++$label_count;
+							$dhl_obj = PR_DHL()->get_dhl_factory();
+							$label_tracking_info = $dhl_obj->get_dhl_label( $args );
 
-					} catch (Exception $e) {
-						throw $e;
+							$this->save_dhl_label_tracking( $order_id, $label_tracking_info );
+							$tracking_note = $this->get_tracking_note( $order_id );
+							// $label_url = $label_tracking_info['label_url'];
+
+							$order = wc_get_order( $order_id );
+							$order->add_order_note( $tracking_note, 1, true );
+							
+							++$label_count;
+
 					}
-				}
-			}
+					error_log(print_r($label_tracking_info,true));
 
+					if( ! empty( $label_tracking_info['label_path'] ) ) {
+						array_push($merge_files, $label_tracking_info['label_path']);
+					}
+
+				}
+
+				$file_bulk = $this->merge_label_files( $merge_files );
+
+			} catch (Exception $e) {
+				throw $e;
+			}
+			
 			$message = sprintf( __( 'DHL label created for %1$s out of %2$s selected order(s).', 'pr-shipping-dhl' ), $label_count , sizeof($order_ids) );
+
+			if ( file_exists( $file_bulk['file_bulk_path'] ) ) {
+				$message .= sprintf( __( ' - %sdownload labels file%s', 'pr-shipping-dhl' ), '<a href="' . $file_bulk['file_bulk_url'] . '" target="_blank">', '</a>' );
+	        } else {
+				$message .= __( '. Could not create bulk DHL label file, download individually.', 'pr-shipping-dhl' );
+	        }
 		}
 
 		return $message;
+	}
+
+	protected function merge_label_files( $files ) {
+
+		if( empty( $files ) ) {
+			throw new Exception( __('There are no files to merge.', 'pr-shipping-dhl') );
+		}
+
+		if( ! empty( $files[0] ) ) {
+			$base_ext = pathinfo($files[0], PATHINFO_EXTENSION);;
+		} else {
+			throw new Exception( __('The first file is empty.', 'pr-shipping-dhl') );
+		}
+
+		if ( method_exists( $this, 'merge_label_files_' . $base_ext ) ) {
+			return call_user_func( array( $this, 'merge_label_files_' . $base_ext ), $files );
+		} else {
+			throw new Exception( __('File format not supported.', 'pr-shipping-dhl') );
+		}
+	}
+
+	protected function merge_label_files_pdf( $files ) {
+
+		if( empty( $files ) ) {
+			throw new Exception( __('There are no files to merge.', 'pr-shipping-dhl') );
+		}
+
+		$pdfMerger = new PDFMerger;
+		foreach ($files as $key => $value) {
+
+			if ( ! file_exists( $value ) ) {
+				// throw new Exception( __('File does not exist', 'pr-shipping-dhl') );
+				continue;
+			}
+
+			$ext = pathinfo($value, PATHINFO_EXTENSION);
+			error_log($ext);
+			// if ( strncasecmp('pdf', $ext, strlen($ext) ) == 0 ) {
+			if ( stripos($ext, 'pdf') === false) {
+				throw new Exception( __('Not all the file formats are the same.', 'pr-shipping-dhl') );
+			}
+
+			$pdfMerger->addPDF( $value, 'all' );
+		}
+
+		$filename = 'dhl-label-bulk-' . time() . '.pdf';
+		$file_bulk_path = PR_DHL()->get_dhl_label_folder_dir() . $filename;
+		$file_bulk_url = PR_DHL()->get_dhl_label_folder_url() . $filename;
+		// error_log($dir);
+		$pdfMerger->merge( 'file',  $file_bulk_path );
+
+		return array( 'file_bulk_path' => $file_bulk_path, 'file_bulk_url' => $file_bulk_url);
 	}
 }
 
