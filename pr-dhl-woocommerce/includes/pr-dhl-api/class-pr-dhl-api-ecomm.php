@@ -81,7 +81,6 @@ class PR_DHL_API_Ecomm extends PR_DHL_API {
 			case 'JP':
 			case 'CN':
 			case 'MY':
-			case 'VN':
 			case 'AU':
 			case 'IL':
 			case 'NZ':
@@ -89,10 +88,11 @@ class PR_DHL_API_Ecomm extends PR_DHL_API {
 			case 'KR':
 			case 'PH':
 			case 'IN':
+			case 'TH':
 				$dhl_prod_int = $asia_int;
 				break;
 			case 'CL':
-			case 'TH':
+			case 'VN':
 			default:
 				break;
 		}

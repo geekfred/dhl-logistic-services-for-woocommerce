@@ -95,6 +95,7 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 			$dhl_obj = PR_DHL()->get_dhl_factory();
 			$select_dhl_product_int = $dhl_obj->get_dhl_products_international();
 			$select_dhl_product_dom = $dhl_obj->get_dhl_products_domestic();
+			$select_dhl_duties = $dhl_obj->get_dhl_duties();
 
 		} catch (Exception $e) {
 			PR_DHL()->log_msg( __('DHL Products not displaying - ', 'pr-shipping-dhl') . $e->getMessage() );
@@ -204,14 +205,6 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 				'options'           => array( 'A4' => 'A4', '400x600' => '400x600', '400x400' => '400x400' ),
 				'class'				=> 'wc-enhanced-select'
 			),
-			'dhl_label_layout' => array(
-				'title'             => __( 'Label Layout', 'pr-shipping-dhl' ),
-				'type'              => 'select',
-				'description'       => __( 'Select the shipping label layout.', 'pr-shipping-dhl' ),
-				'desc_tip'          => true,
-				'options'           => array( '1x1' => '1x1', '4x1' => '4x1' ),
-				'class'				=> 'wc-enhanced-select'
-			),
 			'dhl_handover_type' => array(
 				'title'             => __( 'Handover', 'pr-shipping-dhl' ),
 				'type'              => 'select',
@@ -236,6 +229,14 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 				'default'           => '',
 				'placeholder'		=> '',
 				'class'				=> 'wc_input_decimal'
+			),
+			'dhl_duties_default' => array(
+				'title'             => __( 'Duties', 'pr-shipping-dhl' ),
+				'type'              => 'select',
+				'description'       => __( 'Select default for duties.', 'pr-shipping-dhl' ),
+				'desc_tip'          => true,
+				'options'           => $select_dhl_duties,
+				'class'				=> 'wc-enhanced-select'
 			),
 			'dhl_order_note' => array(
 				'title'             => __( 'Order Notes', 'pr-shipping-dhl' ),
@@ -349,11 +350,11 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 	}
 
 	/**
-	 * Validate the API key
+	 * Validate the pickup field
 	 * @see validate_settings_fields()
 	 */
-	public function validate_dhl_pickup_field( $key ) {
-		$value = wc_clean( $_POST[ $this->plugin_id . $this->id . '_' . $key ] );
+	public function validate_dhl_pickup_field( $key, $value ) {
+		// $value = wc_clean( $_POST[ $this->plugin_id . $this->id . '_' . $key ] );
 
 		try {
 			
@@ -371,11 +372,11 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 	}
 
 	/**
-	 * Validate the API secret
+	 * Validate the distribution field
 	 * @see validate_settings_fields()
 	 */
-	public function validate_dhl_distribution_field( $key ) {
-		$value = wc_clean( $_POST[ $this->plugin_id . $this->id . '_' . $key ] );
+	public function validate_dhl_distribution_field( $key, $value ) {
+		// $value = wc_clean( $_POST[ $this->plugin_id . $this->id . '_' . $key ] );
 		
 		try {
 			
@@ -386,6 +387,62 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 
 			echo $this->get_message( __('Distribution Center: ', 'pr-shipping-dhl') . $e->getMessage() );
 			throw $e;
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Validate the label format field
+	 * @see validate_settings_fields()
+	 */
+	public function validate_dhl_label_format_field( $key, $value ) {
+		// $value = wc_clean( $_POST[ $this->plugin_id . $this->id . '_' . $key ] );
+		$post_data = $this->get_post_data();
+		// error_log($value);
+		$label_page = $post_data[ $this->plugin_id . $this->id . '_' . 'dhl_label_page' ];
+		// error_log($label_page);
+
+		if( ( $value == 'PNG' || $value == 'ZPL' ) && ( $label_page == 'A4' ) ) {
+			$msg = __('The selected format does not support "A4"', 'pr-shipping-dhl');
+			echo $this->get_message($msg);
+			throw new Exception( $msg );
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Validate the label size field
+	 * @see validate_settings_fields()
+	 */
+	public function validate_dhl_label_size_field( $key, $value ) {
+		// $value = wc_clean( $_POST[ $this->plugin_id . $this->id . '_' . $key ] );
+		$distribution_centers = array('HKHKG1', 'CNSHA1', 'CNSZX1');
+		$post_data = $this->get_post_data();
+		// error_log($value);
+
+		$distribution = $post_data[ $this->plugin_id . $this->id . '_' . 'dhl_distribution' ];
+		// error_log($distribution);
+		$label_page = $post_data[ $this->plugin_id . $this->id . '_' . 'dhl_label_page' ];
+		// error_log($label_page);
+
+		if( ! in_array( $distribution, $distribution_centers )  && ( $value == '4x4' ) ) {
+			$msg = __('Your distribution center does not support "4x4" label size.', 'pr-shipping-dhl');
+			echo $this->get_message( $msg );
+			throw new Exception( $msg );
+		}
+
+		if( ( $value == '4x4' ) && ( $label_page == '400x600' ) ) {
+			$msg = __('You cannot have a Label Size of "4x4" and Page Size of "400x600".', 'pr-shipping-dhl');
+			echo $this->get_message( $msg );
+			throw new Exception( $msg );
+		}
+
+		if( ( $value == '4x6' ) && ( $label_page == '400x400' ) ) {
+			$msg = __('You cannot have a Label Size of "4x6" and Page Size of "400x400".', 'pr-shipping-dhl');
+			echo $this->get_message( $msg );
+			throw new Exception( $msg );
 		}
 
 		return $value;
@@ -405,7 +462,7 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 		} catch (Exception $e) {
 
 			echo $this->get_message( __('Could not reset connection: ', 'pr-shipping-dhl') . $e->getMessage() );
-			throw $e;
+			// throw $e;
 		}
 
 		return parent::process_admin_options();

@@ -40,7 +40,20 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 			
 			// DUPLICATE CALL - TEST MAKE SURE STILL OK
 			// $dhl_label_items = $this->get_dhl_label_items( $order_id );
-			
+			if( ! $this->is_shipping_domestic( $order_id ) ) {
+
+			// Duties drop down
+			$duties_opt = $dhl_obj->get_dhl_duties();
+			woocommerce_wp_select( array(
+					'id'          		=> 'pr_dhl_duties',
+					'label'       		=> __( 'Duties:', 'pr-shipping-dhl' ),
+					'description'		=> '',
+					'value'       		=> isset( $dhl_label_items['pr_dhl_duties'] ) ? $dhl_label_items['pr_dhl_duties'] : $this->shipping_dhl_settings['dhl_duties_default'],
+					'options'			=> $duties_opt,
+					'custom_attributes'	=> array( $is_disabled => $is_disabled )
+				) );
+			}
+
 			// Get saved package description, otherwise generate the text based on settings
 			if( ! empty( $dhl_label_items['pr_dhl_description'] ) ) {
 				$selected_dhl_desc = $dhl_label_items['pr_dhl_description'];
@@ -56,6 +69,18 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 				'value'       		=> $selected_dhl_desc,
 				'custom_attributes'	=> array( $is_disabled => $is_disabled, 'maxlength' => '50' )
 			) );
+
+			if( $this->is_cod_payment_method( $order_id ) ) {
+
+				woocommerce_wp_checkbox( array(
+					'id'          		=> 'pr_dhl_is_cod',
+					'label'       		=> __( 'COD Enabled:', 'pr-shipping-dhl' ),
+					'placeholder' 		=> '',
+					'description'		=> '',
+					'value'       		=> isset( $dhl_label_items['pr_dhl_is_cod'] ) ? $dhl_label_items['pr_dhl_is_cod'] : 'yes',
+					'custom_attributes'	=> array( $is_disabled => $is_disabled )
+				) );
+			}
 		}
 	}
 	
@@ -67,7 +92,7 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 	 */
 	public function get_additional_meta_ids( ) {
 
-		return array( 'pr_dhl_description' );
+		return array( 'pr_dhl_duties', 'pr_dhl_description', 'pr_dhl_is_cod' );
 
 	}
 	
@@ -215,6 +240,14 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 			}
 		}
 
+		if ( ! empty( $dhl_label_items['pr_dhl_duties'] ) ) {
+			$args['order_details']['duties'] = $dhl_label_items['pr_dhl_duties'];
+		}
+
+		if ( ! empty( $dhl_label_items['pr_dhl_is_cod'] ) ) {
+			$args['order_details']['is_cod'] = $dhl_label_items['pr_dhl_is_cod'];
+		}
+
 		return $args;
 	}
 	
@@ -245,6 +278,14 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 		
 		if( empty( $dhl_label_items['pr_dhl_description'] ) ) {
 			$dhl_label_items['pr_dhl_description'] = $this->get_package_description( $order_id );
+		}
+
+		if( empty( $dhl_label_items['pr_dhl_duties'] ) ) {
+			$dhl_label_items['pr_dhl_duties'] = $this->shipping_dhl_settings['dhl_duties_default'];
+		}
+
+		if( empty( $dhl_label_items['pr_dhl_is_cod'] ) ) {
+			$dhl_label_items['pr_dhl_is_cod'] = $this->is_cod_payment_method( $order_id ) ? 'yes' : 'no';
 		}
 
 		$this->save_dhl_label_items( $order_id, $dhl_label_items );

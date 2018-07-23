@@ -142,10 +142,12 @@ class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label 
 
 		if ( ! empty( $args['dhl_settings']['label_page'] ) ) {
 			$this->dhl_label_page = $args['dhl_settings']['label_page'];
-		}
-
-		if ( ! empty( $args['dhl_settings']['label_layout'] ) ) {
-			$this->dhl_label_layout = $args['dhl_settings']['label_layout'];
+			
+			if ( $this->dhl_label_page == 'A4') {
+				$this->dhl_label_layout = '4x1';
+			} else {
+				$this->dhl_label_layout = '1x1';
+			}
 		}
 
 		if ( empty( $args['order_details']['dhl_product'] )) {
@@ -171,9 +173,9 @@ class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label 
 			throw new Exception( 'Weight - ' . $e->getMessage() );
 		}
 
-		// if ( empty( $args['order_details']['duties'] )) {
-		// 	throw new Exception( __('DHL "Duties" is empty!', 'pr-shipping-dhl') );
-		// }
+		if ( empty( $args['order_details']['duties'] )) {
+			throw new Exception( __('DHL "Duties" is empty!', 'pr-shipping-dhl') );
+		}
 
 		if ( empty( $args['order_details']['currency'] )) {
 			throw new Exception( __('Shop "Currency" is empty!', 'pr-shipping-dhl') );
@@ -270,7 +272,8 @@ class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label 
 
 			// $shipper_duties = $this->args['order_details']['duties'] == 'shipper' ? 'Y' : 'N';
 			// Default to "consignee" for now
-			$shipper_duties = 'DDU';
+			// $shipper_duties = 'DDU';
+			$shipper_duties = $this->args['order_details']['duties'];
 
 			$package_id = '';
 			if( ! empty( $this->args['order_details']['prefix'] ) ) {
@@ -303,6 +306,29 @@ class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label 
 				$consignee_address_2 = $this->args['shipping_address']['address_2'];
 			}
 
+			$shipping_state = '';
+			if( $this->args['shipping_address']['state'] ) {
+
+				// If China
+				if( $this->args['shipping_address']['country'] == 'CN' ) {
+					
+					// Remove everything after '/'
+					$state_arr = explode( '/', $this->args['shipping_address']['state'] );
+
+					if ( $state_arr ) {
+						$this->args['shipping_address']['state'] = trim( $state_arr[0] );
+					}
+				}
+				
+				$shipping_state = substr( $this->args['shipping_address']['state'], 0, 20 );
+			}
+
+			$cod_value = 0;
+			if( isset( $this->args['order_details']['is_cod'] ) && ($this->args['order_details']['is_cod'] == 'yes') ){
+
+				$cod_value = round( floatval( $this->args['order_details']['total_value'] ), 2);
+			}
+
 			$dhl_label_body = 
 				array( 'shipments' => 
 					array (
@@ -320,13 +346,13 @@ class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label 
 														'address3' => $consignee_address_3,
 														'city' => $this->args['shipping_address']['city'],
 														'postalCode' => $this->args['shipping_address']['postcode'],
-														'state' => $this->args['shipping_address']['state'],
+														'state' => $shipping_state,
 														'country' => $this->args['shipping_address']['country'],
 														'phone' => $this->args['shipping_address']['phone'],
 														),
 											'packageDetails' =>
 												array( 
-														'codAmount' => round( floatval( $this->args['order_details']['cod_value'] ), 2),
+														'codAmount' => $cod_value,
 														'currency' => $this->args['order_details']['currency'],
 														'declaredValue' => round( floatval( $this->args['order_details']['items_value'] ), 2),
 														'dgCategory' => $this->args['order_details']['dangerous_goods'],
