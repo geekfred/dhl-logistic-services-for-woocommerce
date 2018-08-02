@@ -274,6 +274,8 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 
 	protected function save_default_dhl_label_items( $order_id ) {
 
+		parent::save_default_dhl_label_items( $order_id );
+		
 		$dhl_label_items = $this->get_dhl_label_items( $order_id );
 		
 		if( empty( $dhl_label_items['pr_dhl_description'] ) ) {
@@ -290,7 +292,6 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 
 		$this->save_dhl_label_items( $order_id, $dhl_label_items );
 
-		parent::save_default_dhl_label_items( $order_id );
 	}
 
 	// Used by label API to pass handover number

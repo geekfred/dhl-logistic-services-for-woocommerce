@@ -395,7 +395,7 @@ abstract class PR_DHL_WC_Order {
 	}
 
 	/*
-	 * Gets all label itesm fron the post meta array for an order
+	 * Gets all label items fron the post meta array for an order
 	 *
 	 * @param int  $order_id  Order ID
 	 *
@@ -414,6 +414,10 @@ abstract class PR_DHL_WC_Order {
 	 */
 	protected function save_default_dhl_label_items( $order_id ) {
 		$dhl_label_items = $this->get_dhl_label_items( $order_id );
+
+		if( empty( $dhl_label_items ) ) {
+			$dhl_label_items = array();
+		}
 
 		if( empty( $dhl_label_items['pr_dhl_weight'] ) ) {
 			// Set default weight
@@ -535,7 +539,7 @@ abstract class PR_DHL_WC_Order {
 		$args['order_details']['items_value'] = $order->get_subtotal();
 
 		// Get address related information 
-		$billing_address = $order->get_address( );
+		$billing_address = $order->get_address();
 		$shipping_address = $order->get_address( 'shipping' );
 
 		// If shipping phone number doesn't exist, try to get billing phone number
