@@ -905,9 +905,12 @@ abstract class PR_DHL_WC_Order {
 
 							$this->save_dhl_label_tracking( $order_id, $label_tracking_info );
 							$tracking_note = $this->get_tracking_note( $order_id );
+							
+							$tracking_note_type = $this->get_tracking_note_type();
+							$tracking_note_type = empty( $tracking_note_type ) ? 0 : 1;
 							// $label_url = $label_tracking_info['label_url'];
 
-							$order->add_order_note( $tracking_note, 1, true );
+							$order->add_order_note( $tracking_note, $tracking_note_type, true );
 							
 							++$label_count;
 
