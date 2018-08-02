@@ -145,6 +145,14 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 					'desc_tip'          => true,
 					'options'           => $select_dhl_product_int,
 					'class'				=> 'wc-enhanced-select'
+				),
+				'dhl_bulk_product_int' => array(
+					'title'             => __( 'International Bulk Services', 'pr-shipping-dhl' ),
+					'type'              => 'multiselect',
+					'description'       => __( 'Please select the bulk DHL eCommerce shipping service for cross-border shippments that you want to display within the bulk create label actions.', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'options'           => $select_dhl_product_int,
+					'class'				=> 'wc-enhanced-select'
 				)
 			);
 		}
@@ -156,6 +164,14 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 					'title'             => __( 'Domestic Default Service', 'pr-shipping-dhl' ),
 					'type'              => 'select',
 					'description'       => __( 'Please select your default DHL eCommerce shipping service for domestic shippments that you want to offer to your customers (you can always change this within each individual order afterwards)', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'options'           => $select_dhl_product_dom,
+					'class'				=> 'wc-enhanced-select'
+				),
+				'dhl_bulk_product_dom' => array(
+					'title'             => __( 'Domestic Bulk Services', 'pr-shipping-dhl' ),
+					'type'              => 'multiselect',
+					'description'       => __( 'Please select the bulk DHL eCommerce shipping service for domestic shippments that you want to display within the bulk create label actions.', 'pr-shipping-dhl' ),
 					'desc_tip'          => true,
 					'options'           => $select_dhl_product_dom,
 					'class'				=> 'wc-enhanced-select'

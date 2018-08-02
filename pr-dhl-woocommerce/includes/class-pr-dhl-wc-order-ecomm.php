@@ -396,7 +396,28 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 		$shop_manager_actions = array();
 
 		$shop_manager_actions = array(
-			'pr_dhl_create_labels'      => __( 'DHL Create Labels', 'pr-shipping-dhl' ),
+			'pr_dhl_create_labels'      => __( 'DHL Create Labels', 'pr-shipping-dhl' )
+		);
+
+		if ( $bulk_product_int = $this->shipping_dhl_settings['dhl_bulk_product_int'] ) {
+			// error_log(print_r($bulk_product_int,true));
+			foreach ($bulk_product_int as $key => $value) {
+				$shop_manager_actions += array(
+					"pr_dhl_create_labels:int:$value"      => __( "DHL Create Labels - $value", 'pr-shipping-dhl' )
+					);
+			}
+		}
+
+		if ( $bulk_product_dom = $this->shipping_dhl_settings['dhl_bulk_product_dom'] ) {
+			// error_log(print_r($bulk_product_dom,true));
+			foreach ($bulk_product_dom as $key => $value) {
+				$shop_manager_actions += array(
+					"pr_dhl_create_labels:dom:$value"      => __( "DHL Create Labels - $value", 'pr-shipping-dhl' )
+					);
+			}
+		}
+
+		$shop_manager_actions += array(
 			'pr_dhl_handover'      => __( 'DHL Print Handover', 'pr-shipping-dhl' )
 		);
 
@@ -418,9 +439,26 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 		return $message;
 	}
 
-	public function process_bulk_actions( $action, $order_ids, $orders_count ) {
+	public function process_bulk_actions( $action, $order_ids, $orders_count, $dhl_force_product = false, $is_force_product_dom = false ) {
 
-		$message = parent::process_bulk_actions( $action, $order_ids, $orders_count );
+		$array_messages = array();
+		
+		$action_arr = explode(':', $action);
+		if ( ! empty( $action_arr ) ) {
+			$action = $action_arr[0];
+
+			if ( isset( $action_arr[1] ) && ($action_arr[1] == 'dom') ) {
+				$is_force_product_dom = true;
+			} else {
+				$is_force_product_dom = false;
+			}
+
+			if ( isset( $action_arr[2] ) ) {
+				$dhl_force_product = $action_arr[2];
+			}
+		}
+
+		$array_messages += parent::process_bulk_actions( $action, $order_ids, $orders_count, $dhl_force_product, $is_force_product_dom );
 
 		if ( 'pr_dhl_handover' === $action ) {
 			$redirect_url  = admin_url( 'edit.php?post_type=shop_order' );
@@ -446,9 +484,14 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 			$print_link = '<a href="' . $action_url .'" target="_blank">' . __( 'Print DHL handover.', 'pr-shipping-dhl' ) . '</a>';
 
 			$message = sprintf( __( 'DHL handover for %1$s order(s) created. %2$s', 'pr-shipping-dhl' ), $orders_count, $print_link );
+
+			array_push($array_messages, array(
+                'message' => $message,
+                'type' => 'success',
+            ));
 		}
 
-		return $message;
+		return $array_messages;
 	}
 
 	public function print_document_action() {

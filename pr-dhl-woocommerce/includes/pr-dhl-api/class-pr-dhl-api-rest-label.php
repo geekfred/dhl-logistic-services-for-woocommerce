@@ -173,9 +173,9 @@ class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label 
 			throw new Exception( 'Weight - ' . $e->getMessage() );
 		}
 
-		if ( empty( $args['order_details']['duties'] )) {
-			throw new Exception( __('DHL "Duties" is empty!', 'pr-shipping-dhl') );
-		}
+		// if ( empty( $args['order_details']['duties'] )) {
+		// 	throw new Exception( __('DHL "Duties" is empty!', 'pr-shipping-dhl') );
+		// }
 
 		if ( empty( $args['order_details']['currency'] )) {
 			throw new Exception( __('Shop "Currency" is empty!', 'pr-shipping-dhl') );
@@ -283,7 +283,7 @@ class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label 
 			// Package id must be max 30
 			$package_id = substr( $package_id, 0, 30 );
 
-			$package_desc = '';
+			$package_desc = $package_id;
 			if( ! empty( $this->args['order_details']['description'] ) ) {
 				$package_desc = substr( $this->args['order_details']['description'], 0, 50 );
 			}
