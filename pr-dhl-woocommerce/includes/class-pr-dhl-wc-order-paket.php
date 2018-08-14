@@ -162,7 +162,11 @@ class PR_DHL_WC_Order_Paket extends PR_DHL_WC_Order {
 				echo '<hr/>';
 			}
 
-			$preferred_days = PR_DHL()->get_dhl_preferred_days();
+			try {
+				$preferred_days = PR_DHL()->get_dhl_preferred_days();
+			} catch (Exception $e) {
+				// catch exception
+			}
 			
 			$preferred_days = array_keys($preferred_days);
 			$preferred_days = array_combine($preferred_days, $preferred_days);

@@ -143,6 +143,12 @@ class PR_DHL_API_Paket extends PR_DHL_API {
 			$day_counter++;
 		}
 
+		$args['postcode'] = '53111';
+		$args['account_num'] = '2222222222';
+		$args['start_date'] = $week_date;
+		$dhl_parcel_services = new PR_DHL_API_REST_Parcel();
+		$dhl_parcel_services->get_dhl_parcel_services($args);
+
 		$preferred_days = array();
 		while( sizeof( $preferred_days ) < ( self::DHL_PAKET_DISPLAY_DAYS + self::DHL_PAKET_REMOVE_DAYS ) ) {
 
