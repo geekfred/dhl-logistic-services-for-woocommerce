@@ -20,20 +20,7 @@ class PR_DHL_API_REST_Parcel extends PR_DHL_API_REST {
 		$this->set_endpoint( '/checkout/' . $args['postcode'] . '/availableServices' );
 		$this->set_query_string();
 
-		$response_body = $this->get_request();
-
-		// This will work on one order but NOT on bulk!
-		$label_response = $response_body->shipments[0]->packages[0]->responseDetails;
-		$package_id = $label_response->labelDetails[0]->packageId;
-
-		$label_url = $this->save_label_file( $package_id , $label_response->labelDetails[0]->format, $label_response->labelDetails[0]->labelData );
-
-		$label_tracking_info = array( 'label_url' => $label_url,
-										'tracking_number' => $package_id,
-										'tracking_status' => isset( $label_response->trackingNumberStatus ) ? $label_response->trackingNumberStatus : ''
-										);
-
-		return $label_tracking_info;
+		return $this->get_request();
 	}
 
 	protected function set_arguments( $args ) {

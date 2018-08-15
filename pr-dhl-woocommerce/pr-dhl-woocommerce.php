@@ -492,7 +492,7 @@ class PR_DHL_WC {
 	    return $view;
 	}
 
-	public function get_dhl_preferred_days() {
+	public function get_dhl_preferred_day_time() {
 
 		try {
 
@@ -529,7 +529,7 @@ class PR_DHL_WC {
 			$cutoff_time = $shipping_dhl_settings[ 'dhl_preferred_day_cutoff' ];
 		}
 
-		return $dhl_obj->get_dhl_preferred_days( $cutoff_time, $exclusion_work_day );
+		return $dhl_obj->get_dhl_preferred_day_time( $cutoff_time, $exclusion_work_day );
 	}
 
 	public function set_payment_gateways() {

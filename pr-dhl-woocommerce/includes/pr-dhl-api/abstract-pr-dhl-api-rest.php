@@ -250,6 +250,7 @@ abstract class PR_DHL_API_REST {
 		PR_DHL()->log_msg( 'GET Response Body: ' . print_r( $response_body, true ) );
 
 		switch ( $response_code ) {
+			case '200':
 			case '201':
 				break;
 			case '400':
@@ -296,7 +297,7 @@ abstract class PR_DHL_API_REST {
 		$dhl_header['Accept'] = 'application/json';
 		$dhl_header['Authorization'] = 'Bearer ' . $token_bearer;
 		$dhl_header['User-Agent'] = 'WooCommerce/'. WC_VERSION . ' (WordPress/'. $wp_version . ') DHL-plug-in/' . PR_DHL_VERSION;
-		
+
 		$this->remote_header = array_merge($this->remote_header, $dhl_header);
 	}
 

@@ -163,13 +163,18 @@ class PR_DHL_WC_Order_Paket extends PR_DHL_WC_Order {
 			}
 
 			try {
-				$preferred_days = PR_DHL()->get_dhl_preferred_days();
+				$preferred_day_time = PR_DHL()->get_dhl_preferred_day_time();
+
+				$preferred_days = $preferred_day_time['preferred_day'];
+				$preferred_days = array_keys($preferred_days);
+				$preferred_days = array_combine($preferred_days, $preferred_days);
+
+				$preferred_times = $preferred_day_time['preferred_time'];
 			} catch (Exception $e) {
 				// catch exception
+				error_log($e->getMessage());
 			}
 			
-			$preferred_days = array_keys($preferred_days);
-			$preferred_days = array_combine($preferred_days, $preferred_days);
 			$preferred_days[0] = __( 'none', 'pr-shipping-dhl' );
 
 			woocommerce_wp_select( array(
@@ -181,7 +186,7 @@ class PR_DHL_WC_Order_Paket extends PR_DHL_WC_Order {
 				'custom_attributes'	=> array( $is_disabled => $is_disabled )
 			) );
 
-			$preferred_times = $dhl_obj->get_dhl_preferred_time();
+			// $preferred_times = $dhl_obj->get_dhl_preferred_time();
 			woocommerce_wp_select( array(
 				'id'          		=> 'pr_dhl_preferred_time',
 				'label'       		=> __( 'Preferred Time:', 'pr-shipping-dhl' ),

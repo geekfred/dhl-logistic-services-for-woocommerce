@@ -10,6 +10,13 @@ try {
     return;
 }
 
+if( ( isset( $shipping_dhl_settings['dhl_preferred_day'] ) && ( $shipping_dhl_settings['dhl_preferred_day'] == 'yes' ) ) || 
+      ( isset( $shipping_dhl_settings['dhl_preferred_time'] ) && ( $shipping_dhl_settings['dhl_preferred_time'] == 'yes' ) ) ) {
+
+  $preferred_day_time = PR_DHL()->get_dhl_preferred_day_time();
+
+}
+
 ?>
 
 <tr class="dhl-co-tr dhl-co-tr-fist">
@@ -48,7 +55,7 @@ Please choose your preferred delivery option.', 'pr-shipping-dhl'); ?></td>
 
             <?php
 
-              $preferred_days = PR_DHL()->get_dhl_preferred_days();
+              $preferred_days = $preferred_day_time['preferred_day'];
               
               if ( empty( $pr_dhl_preferred_day_selected ) && ! empty( $preferred_days ) ) {
                 $pr_dhl_preferred_day_selected = current( $preferred_days );
@@ -94,7 +101,7 @@ Please choose your preferred delivery option.', 'pr-shipping-dhl'); ?></td>
          <ul class="dhl-co-preffered-time">
 
           <?php 
-            $preferred_times = $dhl_obj->get_dhl_preferred_time();
+            $preferred_times = $preferred_day_time['preferred_time'];
 
             if ( empty( $pr_dhl_preferred_time_selected ) && ! empty( $preferred_times ) ) {
                 $pr_dhl_preferred_time_selected = current( $preferred_times );
