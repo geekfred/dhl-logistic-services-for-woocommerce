@@ -492,7 +492,7 @@ class PR_DHL_WC {
 	    return $view;
 	}
 
-	public function get_dhl_preferred_day_time() {
+	public function get_dhl_preferred_day_time( $postcode ) {
 
 		try {
 
@@ -505,6 +505,10 @@ class PR_DHL_WC {
 
 		if( ! $dhl_obj->is_dhl_paket() ) {
 		  return;
+		}
+
+		if ( ! isset( $shipping_dhl_settings['dhl_account_num'] ) ) {
+			return;
 		}
 
 		$exclusion_work_day = array( );
@@ -529,7 +533,7 @@ class PR_DHL_WC {
 			$cutoff_time = $shipping_dhl_settings[ 'dhl_preferred_day_cutoff' ];
 		}
 
-		return $dhl_obj->get_dhl_preferred_day_time( $cutoff_time, $exclusion_work_day );
+		return $dhl_obj->get_dhl_preferred_day_time( $postcode, $shipping_dhl_settings['dhl_account_num'], $cutoff_time, $exclusion_work_day );
 	}
 
 	public function set_payment_gateways() {

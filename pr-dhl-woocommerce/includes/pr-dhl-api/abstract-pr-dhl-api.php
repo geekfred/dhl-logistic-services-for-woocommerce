@@ -57,7 +57,7 @@ abstract class PR_DHL_API {
 		return;
 	}
 
-	public function get_dhl_preferred_day_time( $cutoff_time, $working_days ) {
+	public function get_dhl_preferred_day_time( $postcode, $account_num, $cutoff_time, $working_days ) {
 		return array();
 	}
 

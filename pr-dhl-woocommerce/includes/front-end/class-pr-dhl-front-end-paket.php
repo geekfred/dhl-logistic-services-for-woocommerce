@@ -285,7 +285,20 @@ class PR_DHL_Front_End_Paket {
 						}
 					}
 
-				}			
+				}
+
+				if( ( isset( $this->shipping_dhl_settings['dhl_preferred_day'] ) && ( $this->shipping_dhl_settings['dhl_preferred_day'] == 'yes' ) ) || 
+				    ( isset( $this->shipping_dhl_settings['dhl_preferred_time'] ) && ( $this->shipping_dhl_settings['dhl_preferred_time'] == 'yes' ) ) ) {
+
+					error_log(print_r($_POST,true));
+					if ( isset( $_POST['s_postcode'] ) ) {
+						$shipping_postcode = wc_clean( $_POST['s_postcode'] );
+						$template_args['preferred_day_time'] = PR_DHL()->get_dhl_preferred_day_time( $shipping_postcode );
+						// Place preferred day and time in session, as to not call the API after placing an order unnecessarily 
+						WC()->session->set( 'dhl_preferred_day_time' , $template_args['preferred_day_time']);
+					}
+
+				}	
 
 				wc_get_template( 'checkout/dhl-preferred-services.php', $template_args, '', PR_DHL_PLUGIN_DIR_PATH . '/templates/' );
 			}
@@ -407,8 +420,10 @@ class PR_DHL_Front_End_Paket {
 		try {
 
 			$dhl_obj = PR_DHL()->get_dhl_factory();
-			$preferred_time = $dhl_obj->get_dhl_preferred_time();
-			
+			$preferred_day_time = WC()->session->get( 'dhl_preferred_day_time' );
+			$preferred_time = $preferred_day_time['preferred_time'];
+			// $preferred_time = $dhl_obj->get_dhl_preferred_time();
+
 			$new_rows = array();
 			foreach ( $this->preferred_services as $key => $value) {
 

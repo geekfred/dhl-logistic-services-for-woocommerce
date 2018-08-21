@@ -83,7 +83,7 @@ class PR_DHL_API_Paket extends PR_DHL_API {
 		return $dhl_prod_dom;
 	}
 
-	public function get_dhl_preferred_day_time( $cutoff_time = '12:00', $exclude_working_days = array() ) {
+	public function get_dhl_preferred_day_time( $postcode, $account_num, $cutoff_time = '12:00', $exclude_working_days = array() ) {
 		// Always exclude Sunday
 		$exclude_sun = array( 'Sun' => __('sun', 'pr-shipping-dhl') );
 		$exclude_working_days += $exclude_sun;
@@ -133,8 +133,8 @@ class PR_DHL_API_Paket extends PR_DHL_API {
 			$day_counter++;
 		}
 
-		$args['postcode'] = '53111';
-		$args['account_num'] = '2222222222';
+		$args['postcode'] = $postcode; // '53111';
+		$args['account_num'] = $account_num; //'2222222222';
 		$args['start_date'] = $week_date;
 		$dhl_parcel_services = new PR_DHL_API_REST_Parcel();
 		$preferred_services = $dhl_parcel_services->get_dhl_parcel_services($args);
@@ -203,10 +203,11 @@ class PR_DHL_API_Paket extends PR_DHL_API {
 
 				$preferred_days[ $week_date ] = $day_of_week_arr[ $day_of_week ];
 			}
+			
+			// Add none option
+			array_unshift( $preferred_days, __('none', 'pr-shipping-dhl') );
 		}
 
-		// Add none option
-		array_unshift( $preferred_days, __('none', 'pr-shipping-dhl') );
 
 		return $preferred_days;
 	}
@@ -223,10 +224,11 @@ class PR_DHL_API_Paket extends PR_DHL_API {
 
 				$preferred_times[ $time_value->code ] = $temp_day_time;
 			}
+			
+			// Add none option
+			array_unshift( $preferred_times, __('none', 'pr-shipping-dhl') );
 		}
 
-		// Add none option
-		array_unshift( $preferred_times, __('none', 'pr-shipping-dhl') );
 
 		return $preferred_times;
 		/*
