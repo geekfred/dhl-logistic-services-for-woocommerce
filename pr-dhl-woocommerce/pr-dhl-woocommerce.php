@@ -140,8 +140,8 @@ class PR_DHL_WC {
 		$this->define( 'PR_DHL_PAKET_BUSSINESS_PORTAL', 'https://www.dhl-geschaeftskundenportal.de' );
 
 		$this->define( 'PR_DHL_PACKSTATION', __('Packstation ', 'pr-shipping-dhl') );
-		$this->define( 'PR_DHL_PARCELSHOP', __('Parcelshop ', 'pr-shipping-dhl') );
-		$this->define( 'PR_DHL_POST_OFFICE', __('Post Office ', 'pr-shipping-dhl') );
+		$this->define( 'PR_DHL_PARCELSHOP', __('Postfiliale ', 'pr-shipping-dhl') );
+		$this->define( 'PR_DHL_POST_OFFICE', __('Postfiliale ', 'pr-shipping-dhl') );
 	}
 	
 	/**
@@ -559,7 +559,7 @@ class PR_DHL_WC {
 	}
 
 	public function is_packstation( $string )	{
-		$pos_ps = strpos( $string, PR_DHL_PACKSTATION );
+		$pos_ps = stripos( $string, PR_DHL_PACKSTATION );
 
 		if( $pos_ps !== false ) {
 			return true;
@@ -569,7 +569,7 @@ class PR_DHL_WC {
 	}
 
 	public function is_parcelshop( $string )	{
-		$pos_ps = strpos( $string, PR_DHL_PARCELSHOP );
+		$pos_ps = stripos( $string, PR_DHL_PARCELSHOP );
 
 		if( $pos_ps !== false ) {
 			return true;
@@ -579,7 +579,7 @@ class PR_DHL_WC {
 	}
 
 	public function is_post_office( $string )	{
-		$pos_ps = strpos( $string, PR_DHL_POST_OFFICE );
+		$pos_ps = stripos( $string, PR_DHL_POST_OFFICE );
 
 		if( $pos_ps !== false ) {
 			return true;
@@ -605,8 +605,7 @@ class PR_DHL_WC {
             array(
                 'base'      => $upload_dir['basedir'] . '/woocommerce_dhl_label',
                 'file'      => '.htaccess',
-                'content'   => "Order deny,allow\nDeny from all\nAllow from ". $_SERVER['SERVER_ADDR']
-                // 'content'   => 'deny from all'
+                'content'   => 'deny from all'
             ),
             array(
                 'base'      => $upload_dir['basedir'] . '/woocommerce_dhl_label',

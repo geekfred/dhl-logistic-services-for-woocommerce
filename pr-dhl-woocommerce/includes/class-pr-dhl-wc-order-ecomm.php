@@ -46,7 +46,7 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 			$duties_opt = $dhl_obj->get_dhl_duties();
 			woocommerce_wp_select( array(
 					'id'          		=> 'pr_dhl_duties',
-					'label'       		=> __( 'Duties:', 'pr-shipping-dhl' ),
+					'label'       		=> __( 'Incoterms:', 'pr-shipping-dhl' ),
 					'description'		=> '',
 					'value'       		=> isset( $dhl_label_items['pr_dhl_duties'] ) ? $dhl_label_items['pr_dhl_duties'] : $this->shipping_dhl_settings['dhl_duties_default'],
 					'options'			=> $duties_opt,
@@ -493,6 +493,12 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 		}
 
 		return $array_messages;
+	}
+
+	protected function get_bulk_settings_override( $args ) {
+		// Override duties to take default settings value for bulk only
+		$args['order_details']['duties'] = $this->shipping_dhl_settings['dhl_duties_default'];
+		return $args;
 	}
 
 	public function print_document_action() {

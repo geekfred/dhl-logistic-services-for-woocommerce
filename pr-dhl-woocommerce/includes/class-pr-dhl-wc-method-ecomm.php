@@ -135,7 +135,7 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 			)
 		);
 
-		if ( ! empty( $select_dhl_product_int ) ) {
+		// if ( ! empty( $select_dhl_product_int ) ) {
 
 			$this->form_fields += array(
 				'dhl_default_product_int' => array(
@@ -155,9 +155,9 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 					'class'				=> 'wc-enhanced-select'
 				)
 			);
-		}
+		// }
 
-		if ( ! empty( $select_dhl_product_dom ) ) {
+		// if ( ! empty( $select_dhl_product_dom ) ) {
 
 			$this->form_fields += array(
 				'dhl_default_product_dom' => array(
@@ -177,7 +177,7 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 					'class'				=> 'wc-enhanced-select'
 				)
 			);
-		}
+		// }
 
 		$this->form_fields += array(
 			'dhl_prefix' => array(
@@ -247,13 +247,13 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 				'class'				=> 'wc_input_decimal'
 			),
 			'dhl_duties_default' => array(
-				'title'             => __( 'Duties', 'pr-shipping-dhl' ),
+				'title'             => __( 'Incoterms', 'pr-shipping-dhl' ),
 				'type'              => 'select',
 				'description'       => __( 'Select default for duties.', 'pr-shipping-dhl' ),
 				'desc_tip'          => true,
 				'options'           => $select_dhl_duties,
 				'class'				=> 'wc-enhanced-select'
-			),
+			),/*
 			'dhl_order_note' => array(
 				'title'             => __( 'Order Notes', 'pr-shipping-dhl' ),
 				'type'              => 'checkbox',
@@ -261,7 +261,7 @@ class PR_DHL_WC_Method_Ecomm extends WC_Shipping_Method {
 				'default'           => 'no',
 				'description'       => __( 'Please, tick here if you want to send the customer "Order Notes" to be added to the label.', 'pr-shipping-dhl' ),
 				'desc_tip'          => true,
-			),
+			),*/
 			'dhl_tracking_note' => array(
 				'title'             => __( 'Tracking Note', 'pr-shipping-dhl' ),
 				'type'              => 'checkbox',
