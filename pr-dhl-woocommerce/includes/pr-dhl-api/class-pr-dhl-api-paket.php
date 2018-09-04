@@ -226,7 +226,7 @@ class PR_DHL_API_Paket extends PR_DHL_API {
 			}
 			
 			// Add none option
-			array_unshift( $preferred_times, __('none', 'pr-shipping-dhl') );
+			array_unshift( $preferred_times, _x('none', 'time context', 'pr-shipping-dhl') );
 		}
 
 
