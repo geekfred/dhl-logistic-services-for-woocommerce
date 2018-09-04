@@ -16,6 +16,8 @@ if ( ! class_exists( 'PR_DHL_WC_Order' ) ) :
 
 abstract class PR_DHL_WC_Order {
 	
+	const DHL_DOWNLOAD_ENDPOINT = 'dhl_download_label';
+
 	protected $shipping_dhl_settings = array();
 
 	/**
@@ -29,8 +31,6 @@ abstract class PR_DHL_WC_Order {
 	}
 
 	protected function define_constants() {
-		PR_DHL()->define( 'PR_DHL_BUTTON_LABEL_GEN', __( 'Generate Label', 'pr-shipping-dhl' ) );
-		PR_DHL()->define( 'PR_DHL_BUTTON_LABEL_PRINT', __( 'Download Label', 'pr-shipping-dhl' ) );
 	}
 
 	public function init_hooks() {
@@ -58,6 +58,9 @@ abstract class PR_DHL_WC_Order {
 
 		// display admin notices for bulk actions
 		add_action( 'admin_notices', array( $this, 'render_messages' ) );
+
+		add_action( 'init', array( $this, 'add_download_label_endpoint' ) );
+		add_action( 'parse_query', array( $this, 'process_download_label' ) );
 	}
 
 	/**
@@ -112,7 +115,7 @@ abstract class PR_DHL_WC_Order {
 		
 		$delete_label = '<span class="wc_dhl_delete"><a href="#" id="dhl_delete_label">' . __('Delete Label', 'pr-shipping-dhl') . '</a></span>';
 
-		$main_button = '<button id="dhl-label-button" class="button button-primary button-save-form">' . PR_DHL_BUTTON_LABEL_GEN . '</button>';
+		$main_button = '<button id="dhl-label-button" class="button button-primary button-save-form">' . __( 'Generate Label', 'pr-shipping-dhl' ) . '</button>';
 
 		// Get tracking info if it exists
 		$label_tracking_info = $this->get_dhl_label_tracking( $order_id );
@@ -120,12 +123,12 @@ abstract class PR_DHL_WC_Order {
 		if( empty( $label_tracking_info ) ) {
 			$is_disabled = '';
 			
-			$print_button = '<a href="#" id="dhl-label-print" class="button button-primary" download target="_blank">' . PR_DHL_BUTTON_LABEL_PRINT . '</a>';
+			$print_button = '<a href="#" id="dhl-label-print" class="button button-primary" download target="_blank">' . __( 'Download Label', 'pr-shipping-dhl' ) . '</a>';
 
 		} else {
 			$is_disabled = 'disabled';
 
-			$print_button = '<a href="'. $label_tracking_info['label_url'] .'" id="dhl-label-print" class="button button-primary" download target="_blank">' .PR_DHL_BUTTON_LABEL_PRINT . '</a>';
+			$print_button = '<a href="'. $this->get_download_label_url( $order_id ) .'" id="dhl-label-print" class="button button-primary" download target="_blank">' .__( 'Download Label', 'pr-shipping-dhl' ) . '</a>';
 		}
 
 		$dhl_label_data = array(
@@ -238,11 +241,11 @@ abstract class PR_DHL_WC_Order {
 			$this->save_dhl_label_tracking( $order_id, $label_tracking_info );
 			$tracking_note = $this->get_tracking_note( $order_id );
 			$tracking_note_type = $this->get_tracking_note_type();
-			$label_url = $label_tracking_info['label_url'];
+			$label_url = $this->get_download_label_url( $order_id );
 
 			wp_send_json( array( 
 				'download_msg' => __('Your DHL label is ready to download, click the "Download Label" button above"', 'pr-shipping-dhl'),
-				'button_txt' => PR_DHL_BUTTON_LABEL_PRINT,
+				'button_txt' => __( 'Download Label', 'pr-shipping-dhl' ),
 				'label_url' => $label_url,
 				'tracking_note'	  => $tracking_note,
 				'tracking_note_type' => $tracking_note_type,
@@ -274,7 +277,7 @@ abstract class PR_DHL_WC_Order {
 
 			wp_send_json( array( 
 				'download_msg' => __('Your DHL label is ready to download, click the "Download Label" button above"', 'pr-shipping-dhl'), 
-				'button_txt' => PR_DHL_BUTTON_LABEL_GEN, 
+				'button_txt' => __( 'Generate Label', 'pr-shipping-dhl' ), 
 				'dhl_tracking_num'	  => $tracking_num
 				) );
 
@@ -284,29 +287,14 @@ abstract class PR_DHL_WC_Order {
 		}
 	}
 
-	protected function get_label_url( $label_url ) {
+	protected function get_download_label_url( $order_id ) {
 		
-		if( empty( $label_url ) ) {
+		if( empty( $order_id ) ) {
 			return '';
 		}
 
-		$ext = pathinfo($label_url, PATHINFO_EXTENSION);
-		$ext = strtoupper($ext);
-		$download_ext = array( 'ZPL' );
-
-		if( in_array($ext, $download_ext) ) {
-			$nonce = wp_create_nonce( 'download-dhl-label' );
-
-			$new_label_url = PR_DHL_PLUGIN_DIR_URL . '/lib/download.php';
-			$upload_path = wp_upload_dir();
-			$label_url = str_replace($upload_path['url'], $upload_path['path'], $label_url);
-
-			$new_label_url .= '?path=' . $label_url . '&nonce=' . $nonce;
-
-			$label_url = $new_label_url;
-		}		
-		
-		return $label_url;
+		// Override URL with our solution's download label endpoint:
+		return site_url( '/' . self::DHL_DOWNLOAD_ENDPOINT . '/' . $order_id );
 	}
 
 	protected function get_tracking_note( $order_id ) {
@@ -579,8 +567,6 @@ abstract class PR_DHL_WC_Order {
 		}
 
 		$args['shipping_address'] = $shipping_address;
-
-		// error_log(print_r($args,true));
 
 		// Get order item specific data
 		$ordered_items = $order->get_items( );
@@ -869,7 +855,7 @@ abstract class PR_DHL_WC_Order {
 
 							// Gather args for DHL API call
 							$args = $this->get_label_args( $order_id );
-							error_log(print_r($args, true));
+							// error_log(print_r($args, true));
 
 							// Force the use of this DHL Product for all bulk label creation
 							if ( $dhl_force_product ) {
@@ -879,12 +865,12 @@ abstract class PR_DHL_WC_Order {
 									$args['order_details']['dhl_product'] = $dhl_force_product;
 								}
 
-								// If forced product is interational AND order is interational
+								// If forced product is international AND order is international
 								if( ! $is_force_product_dom && ! $this->is_shipping_domestic( $order_id ) ) {
 									$args['order_details']['dhl_product'] = $dhl_force_product;
 								}
 							}
-							error_log(print_r($args['order_details']['dhl_product'], true));
+							// error_log(print_r($args['order_details']['dhl_product'], true));
 
 							// Allow third parties to modify the args to the DHL APIs
 							$args = apply_filters('pr_shipping_dhl_label_args', $args, $order_id );
@@ -931,11 +917,20 @@ abstract class PR_DHL_WC_Order {
 
 				if ( file_exists( $file_bulk['file_bulk_path'] ) ) {
 					// $message .= sprintf( __( ' - %sdownload labels file%s', 'pr-shipping-dhl' ), '<a href="' . $file_bulk['file_bulk_url'] . '" target="_blank">', '</a>' );
-					
+
+	                // We're saving the bulk file path temporarily and access it later during the download process.
+		    		// This information expires in 3 minutes (180 seconds), just enough for the user to see the 
+		    		// displayed link and click it if he or she wishes to download the bulk labels
+					set_transient( '_dhl_bulk_download_labels_file_' . get_current_user_id(), $file_bulk['file_bulk_path'], 180);	
+
+					// Construct URL pointing to the download label endpoint (with bulk param):
+					$bulk_download_label_url = site_url( '/' . self::DHL_DOWNLOAD_ENDPOINT . '/bulk' );
+
 					array_push($array_messages, array(
-	                    'message' => sprintf( __( 'Bulk DHL labels file created - %sdownload file%s', 'pr-shipping-dhl' ), '<a href="' . $file_bulk['file_bulk_url'] . '" download target="_blank">', '</a>' ),
+	                    'message' => sprintf( __( 'Bulk DHL labels file created - %sdownload file%s', 'pr-shipping-dhl' ), '<a href="' . $bulk_download_label_url . '" download>', '</a>' ),
 	                    'type' => 'success',
 	                ));
+
 		        } else {
 					// $message .= __( '. Could not create bulk DHL label file, download individually.', 'pr-shipping-dhl' );
 
@@ -990,7 +985,7 @@ abstract class PR_DHL_WC_Order {
 			}
 
 			$ext = pathinfo($value, PATHINFO_EXTENSION);
-			error_log($ext);
+			// error_log($ext);
 			// if ( strncasecmp('pdf', $ext, strlen($ext) ) == 0 ) {
 			if ( stripos($ext, 'pdf') === false) {
 				throw new Exception( __('Not all the file formats are the same.', 'pr-shipping-dhl') );
@@ -1006,6 +1001,126 @@ abstract class PR_DHL_WC_Order {
 		$pdfMerger->merge( 'file',  $file_bulk_path );
 
 		return array( 'file_bulk_path' => $file_bulk_path, 'file_bulk_url' => $file_bulk_url);
+	}
+
+	/**
+	 * Creates a custom endpoint to download the label
+	 */
+	public function add_download_label_endpoint() {
+		add_rewrite_endpoint(  self::DHL_DOWNLOAD_ENDPOINT, EP_ROOT );
+	}
+
+	/**
+	 * Processes the download label request
+	 *
+	 * @return void
+	 */
+	public function process_download_label() {
+	    global $wp_query;
+
+	    // Ensure anyone downloading a file can edit orders
+	    if ( ! current_user_can( 'edit_shop_orders' ) ) {
+			return;
+		}
+
+		if ( ! isset($wp_query->query_vars[ self::DHL_DOWNLOAD_ENDPOINT ] ) ) {
+			return;
+		}
+		
+	    // If we fail to add the "DHL_DOWNLOAD_ENDPOINT" then we bail, otherwise, we
+	    // will continue with the process below.
+	    $endpoint_param = $wp_query->query_vars[ self::DHL_DOWNLOAD_ENDPOINT ];
+	    if ( ! isset( $endpoint_param ) ) {
+	    	return;
+	    }
+
+	    $array_messages = get_option( '_pr_dhl_bulk_action_confirmation' );
+    	if ( empty( $array_messages ) || !is_array( $array_messages ) ) {
+    		$array_messages = array( 'msg_user_id' => get_current_user_id() );
+		}
+
+	    if ( $endpoint_param == 'bulk' ) {
+
+	    	$bulk_file_path = get_transient( '_dhl_bulk_download_labels_file_' . get_current_user_id() );
+	    	if ( false == $this->download_label( $bulk_file_path ) ) {
+	    		array_push($array_messages, array(
+                    'message' => __( 'There are currently no bulk DHL label file to download or the download link for the bulk DHL label file has already expired. Please try again.', 'pr-shipping-dhl' ),
+                    'type' => 'error'
+                ));
+			}
+
+	    } else {
+	    	$order_id = $endpoint_param;
+
+	    	// Get tracking info if it exists
+			$label_tracking_info = $this->get_dhl_label_tracking( $order_id );
+			// Check whether the label has already been created or not
+			if( empty( $label_tracking_info ) ) {
+				return;
+			}
+			
+			$label_path = $label_tracking_info['label_path'];
+			if ( false == $this->download_label( $label_path ) ) {
+	    		array_push($array_messages, array(
+                    'message' => __( 'Unable to download file. Label appears to be invalid or is missing. Please try again.', 'pr-shipping-dhl' ),
+                    'type' => 'error'
+                ));
+			}
+	    }
+
+	    update_option( '_pr_dhl_bulk_action_confirmation', $array_messages );
+
+	    // If there are errors redirect to the shop_orders and display error
+	    if ( ! $this->has_error_message( $array_messages ) ) {
+			$redirect_url  = admin_url( 'edit.php?post_type=shop_order' );
+			wp_redirect( $redirect_url );
+			exit;
+		}
+	}
+
+	/**
+	 * Checks whether the current "messages" collection has an
+	 * error message waiting to be rendered.
+	 *
+	 * @param array $messages
+	 * @return boolean
+	 */
+	protected function has_error_message( $messages ) {
+		$has_error = false;
+
+		foreach ( $messages as $key => $value ) {
+			if ( $value['type'] == 'error' ) {
+				$has_error = true;
+				break;
+			}
+		}
+
+		return $has_error;
+	}
+
+	/**
+	 * Downloads the generated label file
+	 *
+	 * @param string $file_path
+	 * @return boolean|void
+	 */
+	protected function download_label( $file_path ) {
+		if ( !empty( $file_path ) && is_string( $file_path ) && file_exists( $file_path ) ) {
+			$filename = basename( $file_path );
+
+		    header( 'Content-Description: File Transfer' );
+		    header( 'Content-Type: application/octet-stream' );
+		    header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+		    header( 'Expires: 0' );
+		    header( 'Cache-Control: must-revalidate' );
+		    header( 'Pragma: public' );
+		    header( 'Content-Length: ' . filesize( $file_path ) );
+
+		    readfile( $file_path );
+		    exit;
+		} else {
+			return false;
+		}
 	}
 }
 
