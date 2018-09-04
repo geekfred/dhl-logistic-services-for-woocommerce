@@ -38,10 +38,6 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 
 		if( ! $this->is_shipping_domestic( $order_id ) ) {
 			
-			// DUPLICATE CALL - TEST MAKE SURE STILL OK
-			// $dhl_label_items = $this->get_dhl_label_items( $order_id );
-			if( ! $this->is_shipping_domestic( $order_id ) ) {
-
 			// Duties drop down
 			$duties_opt = $dhl_obj->get_dhl_duties();
 			woocommerce_wp_select( array(
@@ -52,7 +48,6 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 					'options'			=> $duties_opt,
 					'custom_attributes'	=> array( $is_disabled => $is_disabled )
 				) );
-			}
 
 			// Get saved package description, otherwise generate the text based on settings
 			if( ! empty( $dhl_label_items['pr_dhl_description'] ) ) {
@@ -70,17 +65,18 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 				'custom_attributes'	=> array( $is_disabled => $is_disabled, 'maxlength' => '50' )
 			) );
 
-			if( $this->is_cod_payment_method( $order_id ) ) {
+		}
+		
+		if( $this->is_cod_payment_method( $order_id ) ) {
 
-				woocommerce_wp_checkbox( array(
-					'id'          		=> 'pr_dhl_is_cod',
-					'label'       		=> __( 'COD Enabled:', 'pr-shipping-dhl' ),
-					'placeholder' 		=> '',
-					'description'		=> '',
-					'value'       		=> isset( $dhl_label_items['pr_dhl_is_cod'] ) ? $dhl_label_items['pr_dhl_is_cod'] : 'yes',
-					'custom_attributes'	=> array( $is_disabled => $is_disabled )
-				) );
-			}
+			woocommerce_wp_checkbox( array(
+				'id'          		=> 'pr_dhl_is_cod',
+				'label'       		=> __( 'COD Enabled:', 'pr-shipping-dhl' ),
+				'placeholder' 		=> '',
+				'description'		=> '',
+				'value'       		=> isset( $dhl_label_items['pr_dhl_is_cod'] ) ? $dhl_label_items['pr_dhl_is_cod'] : 'yes',
+				'custom_attributes'	=> array( $is_disabled => $is_disabled )
+			) );
 		}
 	}
 	
