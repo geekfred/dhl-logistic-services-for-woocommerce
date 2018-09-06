@@ -206,8 +206,6 @@ class PR_DHL_WC {
         add_action( 'init', array( $this, 'load_textdomain' ) );
         add_action( 'init', array( $this, 'set_payment_gateways' ) );
 
-        add_filter( 'plugin_action_links_' . PR_DHL_PLUGIN_BASENAME, array( $this, 'plugin_action_links' ) );
-
         add_action( 'admin_enqueue_scripts', array( $this, 'dhl_theme_enqueue_styles') );
 
         add_action( 'woocommerce_shipping_init', array( $this, 'includes' ) );
@@ -217,37 +215,6 @@ class PR_DHL_WC {
         // Add state field for 'VN'
         add_filter( 'woocommerce_states', array( $this, 'add_vn_states' ) );
     }
-	
-	/**
-	 * Show action links on the plugin screen.
-	 *
-	 * @param	mixed $links Plugin Action links
-	 * @return	array
-	 */
-	public static function plugin_action_links( $links ) {
-
-		try {
-
-			$dhl_obj = $this->get_dhl_factory();
-
-			if( $dhl_obj->is_dhl_paket() ) {
-				$section = 'pr_dhl_paket';
-			} elseif( $dhl_obj->is_dhl_ecomm() ) {
-				$section = 'pr_dhl_ecomm';
-			}
-
-			$action_links = array(
-				'settings' => '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=shipping&section=' . $section ) . '" aria-label="' . esc_attr__( 'View WooCommerce settings', 'smart-send-shipping' ) . '">' . esc_html__( 'Settings', 'smart-send-shipping' ) . '</a>',
-			);
-
-			return array_merge( $action_links, $links );
-
-		} catch (Exception $e) {
-			add_action( 'admin_notices', array( $this, 'environment_check' ) );
-		}
-
-		return $links;
-	}
 
 	public function get_pr_dhl_wc_order() {
 		if ( ! isset( $this->shipping_dhl_order ) ){
