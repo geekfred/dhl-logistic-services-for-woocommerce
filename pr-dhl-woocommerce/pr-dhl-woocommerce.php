@@ -78,6 +78,14 @@ class PR_DHL_WC {
 
 	private $payment_gateway_titles = array();
 
+	protected $base_country_code = '';
+
+	// 'LI', 'CH', 'NO'
+	protected $eu_iso2 = array( 'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'RO', 'SI', 'SK', 'ES', 'SE', 'GB');
+
+	// These are all considered domestic by DHL
+	protected $us_territories = array( 'US', 'GU', 'AS', 'PR', 'UM', 'VI' );
+		
 	/**
 	* Construct the plugin.
 	*/
@@ -163,13 +171,12 @@ class PR_DHL_WC {
 	public function load_plugin() {
 		// Checks if WooCommerce is installed.
 		if ( class_exists( 'WC_Shipping_Method' ) ) {			
-			
-			$base_country_code = $this->get_base_country();
+			$this->base_country_code = $this->get_base_country();
 
 			// If NL selected, load DHL Parcel plugin.
 			$dhl_parcel_countries = array( 'NL', 'BE', 'LU' );
 
-			if ( in_array( $base_country_code, $dhl_parcel_countries ) ) {
+			if ( in_array( $this->base_country_code, $dhl_parcel_countries ) ) {
 				include( 'dhlpwoocommerce/dhlpwoocommerce.php' );
 			} else {
                 $this->define_constants();
@@ -556,6 +563,51 @@ class PR_DHL_WC {
 
 	public function get_payment_gateways( ) {
 		return $this->payment_gateway_titles;
+	}
+
+	/**
+	 * Function return whether the sender and receiver country is the same territory
+	 */
+	public function is_shipping_domestic( $country_receiver ) {   	 
+		// $this->base_country_code = PR_DHL()->get_base_country();
+
+		// If base is US territory
+		if( in_array( $this->base_country_code, $this->us_territories ) ) {
+			
+			// ...and destination is US territory, then it is "domestic"
+			if( in_array( $country_receiver, $this->us_territories ) ) {
+				return true;
+			} else {
+				return false;
+			}
+
+		} elseif( $country_receiver == $this->base_country_code ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Function return whether the sender and receiver country is "crossborder" i.e. needs CUSTOMS declarations (outside EU)
+	 */
+	public function is_crossborder_shipment( $country_receiver ) {
+		
+		if ($this->is_shipping_domestic( $country_receiver )) {
+			return false;
+		}
+
+		// Is sender country in EU...
+		if ( in_array( $this->base_country_code, $this->eu_iso2 ) ) {
+			// ... and receiver country is in EU means NOT crossborder!
+			if ( in_array( $country_receiver, $this->eu_iso2 ) ) {
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+			return true;
+		}
 	}
 
 	public function is_packstation( $string )	{

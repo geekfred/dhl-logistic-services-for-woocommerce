@@ -254,27 +254,6 @@ class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label 
 
 		if( !empty( $this->args ) ) {
 
-			$customsDetails = array();
-			foreach ($this->args['items'] as $key => $item) {
-				
-				$json_item = array( 'itemDescription' 	=>	substr( $item['item_description'], 0, 200 ),
-									'descriptionExport' =>	substr( $item['item_export'], 0, 200 ),
-									// 'descriptionImport' =>	substr( $item['item_description'], 0, 200 ),
-									'countryOfOrigin' 	=> 	$item['country_origin'],
-									'hsCode'			=> 	$item['hs_code'],
-									'packagedQuantity' 	=> 	intval( $item['qty'] ),
-									'itemValue' 		=> 	round( floatval( $item['item_value'] ) , 2),
-									'skuNumber'			=> 	$item['sku']
-						);
-
-				array_push($customsDetails, $json_item);
-			}
-
-			// $shipper_duties = $this->args['order_details']['duties'] == 'shipper' ? 'Y' : 'N';
-			// Default to "consignee" for now
-			// $shipper_duties = 'DDU';
-			$shipper_duties = $this->args['order_details']['duties'];
-
 			$package_id = '';
 			if( ! empty( $this->args['order_details']['prefix'] ) ) {
 				$package_id = $this->args['order_details']['prefix'];
@@ -354,9 +333,7 @@ class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label 
 												array( 
 														'codAmount' => $cod_value,
 														'currency' => $this->args['order_details']['currency'],
-														'declaredValue' => round( floatval( $this->args['order_details']['items_value'] ), 2),
 														'dgCategory' => $this->args['order_details']['dangerous_goods'],
-														'dutiesPaid' => $shipper_duties,
 														'orderedProduct' => $this->args['order_details']['dhl_product'],
 														'packageDesc' => $package_desc,
 														'packageId' => $package_id,
@@ -365,12 +342,43 @@ class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label 
 														'billingRef1' => substr( $this->args['order_details']['order_note'], 0, 50),
 														'billingRef2' => substr( $this->args['order_details']['order_note'], 50, 25)
 														),
-											'customsDetails' => $customsDetails
+											// 'customsDetails' => $customsDetails
 										) 
 									)
 						) 
 					)
 				);
+
+			// Add customs info
+			if( PR_DHL()->is_crossborder_shipment( $this->args['shipping_address']['country'] ) ) {
+
+				$customsDetails = array();
+				foreach ($this->args['items'] as $key => $item) {
+					
+					$json_item = array( 'itemDescription' 	=>	substr( $item['item_description'], 0, 200 ),
+										'descriptionExport' =>	substr( $item['item_export'], 0, 200 ),
+										// 'descriptionImport' =>	substr( $item['item_description'], 0, 200 ),
+										'countryOfOrigin' 	=> 	$item['country_origin'],
+										'hsCode'			=> 	$item['hs_code'],
+										'packagedQuantity' 	=> 	intval( $item['qty'] ),
+										'itemValue' 		=> 	round( floatval( $item['item_value'] ) , 2),
+										'skuNumber'			=> 	$item['sku']
+							);
+
+					array_push($customsDetails, $json_item);
+				}
+				// error_log(print_r($dhl_label_body,true));
+				// Add customs info
+				$dhl_label_body['shipments'][0]['packages'][0]['customsDetails'] = $customsDetails;
+
+				// Add duties info
+				$dhl_label_body['shipments'][0]['packages'][0]['packageDetails']['dutiesPaid'] = $this->args['order_details']['duties'];
+				
+				// Declared info
+				$dhl_label_body['shipments'][0]['packages'][0]['packageDetails']['declaredValue'] = round( floatval( $this->args['order_details']['items_value'] ), 2);
+
+				// error_log(print_r($dhl_label_body,true));
+			}
 
 			// Unset/remove any items that are empty strings or 0, even if required!
 			$dhl_label_body = $this->walk_recursive_remove( $dhl_label_body );

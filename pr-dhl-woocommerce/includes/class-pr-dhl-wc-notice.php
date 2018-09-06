@@ -71,9 +71,24 @@ class PR_DHL_WC_Notice {
 		// error_log(print_r($_POST,true));
 
 		if ( isset( $_POST['dhl-optin-user'] ) ) {
-			// send email
+
+			$current_user = wp_get_current_user();
+			if ( empty( $current_user->user_firstname ) && empty( $current_user->user_lastname) ) {
+				$email_name = $current_user->user_login;
+			} else {
+				$email_name = $current_user->user_firstname . ' ' . $current_user->user_lastname;
+			}
+
+			$subject = __('DHL Support Request from DHL WooCommerce plugin', 'pr-shipping-dhl');
+			$message = __('Please contact me to help me setup the plugin.', 'pr-shipping-dhl');
+			$headers[] = 'From: ' . $email_name . ' <' . $current_user->user_email . '>';
+			// send email to 'integration@dhl.com'
+			if( ! wp_mail( 'wp@progressus.io', $subject, $message, $headers ) ) {
+				PR_DHL()->log_msg( 'Email failure: DHL notice "wp_mail" failed to send' );
+			}
 
 			update_option( 'dhl_user_optedin', 1 );
+
 			wp_redirect( admin_url( 'admin.php?page=wc-settings&tab=shipping&section=pr_dhl_ecomm' ) );
 		}
 	}

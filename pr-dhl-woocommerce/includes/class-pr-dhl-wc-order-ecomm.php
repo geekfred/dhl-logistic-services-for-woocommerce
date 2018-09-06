@@ -36,7 +36,7 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 
 	public function additional_meta_box_fields( $order_id, $is_disabled, $dhl_label_items, $dhl_obj ) {
 
-		if( ! $this->is_shipping_domestic( $order_id ) ) {
+		if( $this->is_crossborder_shipment( $order_id ) ) {
 			
 			// Duties drop down
 			$duties_opt = $dhl_obj->get_dhl_duties();
@@ -396,7 +396,7 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 			'pr_dhl_create_labels'      => __( 'DHL Create Labels', 'pr-shipping-dhl' )
 		);
 
-		if ( $bulk_product_int = $this->shipping_dhl_settings['dhl_bulk_product_int'] ) {
+		if ( isset( $this->shipping_dhl_settings['dhl_bulk_product_int']) && ($bulk_product_int = $this->shipping_dhl_settings['dhl_bulk_product_int'] ) ) {
 			// error_log(print_r($bulk_product_int,true));
 			foreach ($bulk_product_int as $key => $value) {
 				$shop_manager_actions += array(
@@ -405,7 +405,7 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 			}
 		}
 
-		if ( $bulk_product_dom = $this->shipping_dhl_settings['dhl_bulk_product_dom'] ) {
+		if ( isset($this->shipping_dhl_settings['dhl_bulk_product_dom']) && ($bulk_product_dom = $this->shipping_dhl_settings['dhl_bulk_product_dom'] ) ) {
 			// error_log(print_r($bulk_product_dom,true));
 			foreach ($bulk_product_dom as $key => $value) {
 				$shop_manager_actions += array(

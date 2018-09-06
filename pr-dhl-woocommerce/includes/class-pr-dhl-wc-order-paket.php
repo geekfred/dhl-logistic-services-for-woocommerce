@@ -31,7 +31,7 @@ class PR_DHL_WC_Order_Paket extends PR_DHL_WC_Order {
 		
 		echo '<hr/>';
 
-		if( ! $this->is_shipping_domestic( $order_id ) ) {
+		if( $this->is_crossborder_shipment( $order_id ) ) {
 
 			// Duties drop down
 			$duties_opt = $dhl_obj->get_dhl_duties();
