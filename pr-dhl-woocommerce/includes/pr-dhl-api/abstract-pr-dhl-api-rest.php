@@ -295,7 +295,7 @@ abstract class PR_DHL_API_REST {
 
 		$dhl_header['Content-Type'] = 'application/json';
 		$dhl_header['Accept'] = 'application/json';
-		$dhl_header['Authorization'] = 'Bearer ' . $token_bearer;
+		$dhl_header['Authorization'] = 'Bearer ' . $authorization;
 		$dhl_header['User-Agent'] = 'WooCommerce/'. WC_VERSION . ' (WordPress/'. $wp_version . ') DHL-plug-in/' . PR_DHL_VERSION;
 
 		$this->remote_header = array_merge($this->remote_header, $dhl_header);
