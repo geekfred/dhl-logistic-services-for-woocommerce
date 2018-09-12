@@ -67,9 +67,7 @@ class PR_DHL_API_SOAP_Label extends PR_DHL_API_SOAP implements PR_DHL_API_Label 
 			PR_DHL()->log_msg( '"createShipmentOrder" called with: ' . print_r( $soap_request, true ) );
 
 			$response_body = $soap_client->createShipmentOrder($soap_request);
-			// error_log(print_r($soap_client->__getLastRequest(),true));
-			// error_log(print_r($soap_client->__getLastResponse(),true));
-			// error_log(print_r($response_body,true));
+
 			PR_DHL()->log_msg( 'Response: Successful');
 
 		} catch (Exception $e) {
@@ -375,7 +373,7 @@ class PR_DHL_API_SOAP_Label extends PR_DHL_API_SOAP implements PR_DHL_API_Label 
 	
 
 	protected function set_message() {
-		// error_log(print_r($this->args,true));
+		
 		if( ! empty( $this->args ) ) {
 			// Set date related functions to German time
 			// date_default_timezone_set('Europe/Berlin');
@@ -667,7 +665,6 @@ class PR_DHL_API_SOAP_Label extends PR_DHL_API_SOAP implements PR_DHL_API_Label 
 														'email' => $this->args['order_details']['return_email']
 														)
 											);
-				// error_log(print_r($this->dhl_label_body['ShipmentOrder']['Shipment']['ReturnReceiver'],true));
 			}
 
 			// Is codeable set here since it's at a high level in the message

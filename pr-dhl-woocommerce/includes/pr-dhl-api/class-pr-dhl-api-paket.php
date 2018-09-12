@@ -133,8 +133,8 @@ class PR_DHL_API_Paket extends PR_DHL_API {
 			$day_counter++;
 		}
 
-		$args['postcode'] = $postcode; // '53111';
-		$args['account_num'] = $account_num; //'2222222222';
+		$args['postcode'] = $postcode;
+		$args['account_num'] = $account_num;
 		$args['start_date'] = $week_date;
 		$dhl_parcel_services = new PR_DHL_API_REST_Parcel();
 		$preferred_services = $dhl_parcel_services->get_dhl_parcel_services($args);
@@ -142,35 +142,6 @@ class PR_DHL_API_Paket extends PR_DHL_API {
 		$preferred_day_time = array();
 		$preferred_day_time['preferred_day'] = $this->get_dhl_preferred_day( $preferred_services );
 		$preferred_day_time['preferred_time'] = $this->get_dhl_preferred_time( $preferred_services );
-
-		error_log(print_r($preferred_day_time,true));
-		// FROM HERE REMOVE
-		/*
-		$preferred_days = array();
-		while( sizeof( $preferred_days ) < ( self::DHL_PAKET_DISPLAY_DAYS + self::DHL_PAKET_REMOVE_DAYS ) ) {
-
-			// NEED TO TEST WITH DE TRANSLATION FOR DISPLAY!
-			$day_of_week = strtolower( date('N', strtotime("+$day_counter days") ) );
-			$week_day = strtolower( date('D', strtotime("+$day_counter days") ) );
-			// $week_day = strftime('%a', strtotime("+$day_counter days") );
-			$week_date = date('Y-m-d', strtotime("+$day_counter days") );
-			
-			// Do not deliver on Sunday or holiday!
-			if ( ! array_key_exists($week_day, $exclude_sun) && ! in_array($week_date, $this->de_national_holidays) ) {
-
-				// $week_day_num = date('j', strtotime("+$day_counter days") );
-				$preferred_days[ $week_date ] = $day_of_week_arr[ $day_of_week ];
-			}			
-			
-			$day_counter++;
-		}
-
-		// Remove first 2 working days, since cannot deliver right away
-		for ($i=0; $i < self::DHL_PAKET_REMOVE_DAYS; $i++) { 
-			array_shift( $preferred_days );
-		}
-		*/
-		// REMOVE END
 
 		// Reset time locael
 		// setlocale(LC_TIME, $current_locale);
@@ -181,7 +152,6 @@ class PR_DHL_API_Paket extends PR_DHL_API {
 	}
 
 	protected function get_dhl_preferred_day( $preferred_services ) {
-		// error_log(print_r($preferred_services->preferredDay,true));
 		$day_of_week_arr = array(
 		            '1' => __('Mon', 'pr-shipping-dhl'), 
 		            '2' => __('Tue', 'pr-shipping-dhl'), 
@@ -217,26 +187,21 @@ class PR_DHL_API_Paket extends PR_DHL_API {
 		$preferred_times = array();
 		if( isset( $preferred_services->preferredTime->available ) && $preferred_services->preferredTime->available && isset( $preferred_services->preferredTime->timeframes ) ) {
 
+			// Add none option
+			$preferred_times[0] = _x('none', 'time context', 'pr-shipping-dhl');
 			foreach ($preferred_services->preferredTime->timeframes as $time_key => $time_value) {
 				$temp_day_time = str_replace( ':00', '', $time_value->start );
 				$temp_day_time .= '-';
 				$temp_day_time .= str_replace( ':00', '', $time_value->end );
 
-				$preferred_times[ $time_value->code ] = $temp_day_time;
+				$temp_day_time_key = str_replace( ':', '', $time_value->start );
+				$temp_day_time_key .= str_replace( ':', '', $time_value->end );
+
+				$preferred_times[ $temp_day_time_key ] = $temp_day_time;
 			}
-			
-			// Add none option
-			array_unshift( $preferred_times, _x('none', 'time context', 'pr-shipping-dhl') );
 		}
 
-
 		return $preferred_times;
-		/*
-		return array(
-				'0' => _x('none', 'time context', 'pr-shipping-dhl'),
-				'18002000' => '18 - 20',
-				'19002100' => '19 - 21' 
-			);	*/
 	}
 
 	public function get_dhl_duties() {

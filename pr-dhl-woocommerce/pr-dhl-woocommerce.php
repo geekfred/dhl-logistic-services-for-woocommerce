@@ -121,8 +121,8 @@ class PR_DHL_WC {
 		$this->define( 'PR_DHL_ECOMM_TRACKING_URL', 'https://webtrack.dhlglobalmail.com/?trackingnumber=' );
 
 		// DHL Paket
-		$this->define( 'PR_DHL_CIG_USR', 'dhl_woocommerce_plugin_1' );
-		$this->define( 'PR_DHL_CIG_PWD', 'rlUxXgDR59Qk9cpnAUx2qNxozYvA6T' );
+		$this->define( 'PR_DHL_CIG_USR', 'dhl_woocommerce_plugin_2_1' );
+		$this->define( 'PR_DHL_CIG_PWD', 'Iw4zil3jFJTOXHA6AuWP4ykGkXKLee' );
 		$this->define( 'PR_DHL_CIG_AUTH', 'https://cig.dhl.de/services/production/soap' );
 
 		// Flag for sandbox testing
@@ -203,7 +203,7 @@ class PR_DHL_WC {
         add_action( 'wp_ajax_test_dhl_connection', array( $this, 'test_dhl_connection_callback' ) );
 
     }
-
+	
 	public function get_pr_dhl_wc_order() {
 		if ( ! isset( $this->shipping_dhl_order ) ){
 			try {
@@ -594,11 +594,9 @@ class PR_DHL_WC {
      * empty_pdf_task will delete them hourly
      */
     public function create_dhl_label_folder() {
-    	// error_log('create_dhl_label_folder');
         // Install files and folders for uploading files and prevent hotlinking
         $upload_dir =  wp_upload_dir();
 
-        // error_log(print_r($_SERVER,true));
         $files = array(
             array(
                 'base'      => $upload_dir['basedir'] . '/woocommerce_dhl_label',

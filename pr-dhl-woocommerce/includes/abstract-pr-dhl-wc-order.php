@@ -855,7 +855,6 @@ abstract class PR_DHL_WC_Order {
 
 							// Gather args for DHL API call
 							$args = $this->get_label_args( $order_id );
-							// error_log(print_r($args, true));
 
 							// Force the use of this DHL Product for all bulk label creation
 							if ( $dhl_force_product ) {
@@ -870,7 +869,6 @@ abstract class PR_DHL_WC_Order {
 									$args['order_details']['dhl_product'] = $dhl_force_product;
 								}
 							}
-							// error_log(print_r($args['order_details']['dhl_product'], true));
 
 							// Allow third parties to modify the args to the DHL APIs
 							$args = apply_filters('pr_shipping_dhl_label_args', $args, $order_id );
@@ -895,7 +893,6 @@ abstract class PR_DHL_WC_Order {
                             ));
 
 					}
-					// error_log(print_r($label_tracking_info,true));
 
 					if( ! empty( $label_tracking_info['label_path'] ) ) {
 						array_push($merge_files, $label_tracking_info['label_path']);
@@ -985,7 +982,6 @@ abstract class PR_DHL_WC_Order {
 			}
 
 			$ext = pathinfo($value, PATHINFO_EXTENSION);
-			// error_log($ext);
 			// if ( strncasecmp('pdf', $ext, strlen($ext) ) == 0 ) {
 			if ( stripos($ext, 'pdf') === false) {
 				throw new Exception( __('Not all the file formats are the same.', 'pr-shipping-dhl') );
@@ -997,7 +993,6 @@ abstract class PR_DHL_WC_Order {
 		$filename = 'dhl-label-bulk-' . time() . '.pdf';
 		$file_bulk_path = PR_DHL()->get_dhl_label_folder_dir() . $filename;
 		$file_bulk_url = PR_DHL()->get_dhl_label_folder_url() . $filename;
-		// error_log($dir);
 		$pdfMerger->merge( 'file',  $file_bulk_path );
 
 		return array( 'file_bulk_path' => $file_bulk_path, 'file_bulk_url' => $file_bulk_url);

@@ -35,9 +35,7 @@ class PR_DHL_API_SOAP_Finder extends PR_DHL_API_SOAP {
 			PR_DHL()->log_msg( '"getParcellocationByAddress" called with: ' . print_r( $soap_request, true ) );
 
 			$response_body = $soap_client->getParcellocationByAddress($soap_request);
-			// error_log(print_r($soap_client->__getLastRequest(),true));
-			// error_log(print_r($soap_client->__getLastResponse(),true));
-			// error_log(print_r($response_body,true));
+
 			PR_DHL()->log_msg( 'Response: Successful');
 		
 			return $response_body;

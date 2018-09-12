@@ -57,6 +57,5 @@ class PR_DHL_API_REST_Parcel extends PR_DHL_API_REST {
 		}
 		
 		$this->remote_header = $dhl_header;
-		error_log(print_r($this->remote_header,true));
 	}
 }

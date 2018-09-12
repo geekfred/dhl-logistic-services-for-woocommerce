@@ -174,7 +174,6 @@ class PR_DHL_WC_Order_Paket extends PR_DHL_WC_Order {
 				$preferred_times = $preferred_day_time['preferred_time'];
 			} catch (Exception $e) {
 				// catch exception
-				error_log($e->getMessage());
 			}
 			
 			$preferred_days[0] = __( 'none', 'pr-shipping-dhl' );
