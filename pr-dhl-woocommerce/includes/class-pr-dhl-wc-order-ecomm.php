@@ -221,7 +221,7 @@ class PR_DHL_WC_Order_Ecomm extends PR_DHL_WC_Order {
 			$args['order_details']['description'] = $dhl_label_items['pr_dhl_description'];
 		} else {
 			// If description is empty and it is an international shipment throw an error
-			if ( ! $this->is_shipping_domestic( $order_id ) ) {
+			if ( $this->is_crossborder_shipment( $order_id ) ) {
 				throw new Exception( __('The package description cannot be empty!', 'pr-shipping-dhl') );
 				
 			}			

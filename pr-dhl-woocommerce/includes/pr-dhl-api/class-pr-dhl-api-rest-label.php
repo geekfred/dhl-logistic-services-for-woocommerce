@@ -92,12 +92,9 @@ class PR_DHL_API_REST_Label extends PR_DHL_API_REST implements PR_DHL_API_Label 
 
 	protected function save_label_file( $package_id, $format, $label_data ) {
 		$label_name = 'dhl-label-' . $package_id . '.' . $format;
-		$upload_path = wp_upload_dir();
-		// PR_DHL()->get_dhl_label_folder();
-		// $label_path = $upload_path['path'] . '/'. $label_name;
-		// $label_url = $upload_path['url'] . '/'. $label_name;
-		$label_path = $upload_path['basedir'] . '/woocommerce_dhl_label/'. $label_name;
-		$label_url = $upload_path['baseurl'] . '/woocommerce_dhl_label/'. $label_name;
+		$label_path = PR_DHL()->get_dhl_label_folder_dir() . $label_name;
+		$label_url = PR_DHL()->get_dhl_label_folder_url() . $label_name;
+
 		if( validate_file($label_path) > 0 ) {
 			throw new Exception( __('Invalid file path!', 'pr-shipping-dhl' ) );
 		}
