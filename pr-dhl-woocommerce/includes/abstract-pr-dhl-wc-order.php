@@ -454,26 +454,23 @@ abstract class PR_DHL_WC_Order {
 	}
 
 	protected function is_shipping_domestic( $order_id ) {   	 
-		$base_country_code = PR_DHL()->get_base_country();
-
 		$order = wc_get_order( $order_id );
 		$shipping_address = $order->get_address( 'shipping' );
 		$shipping_country = $shipping_address['country'];
 
-		// These are all considered domestic by DHL
-		$us_territories = array( 'US', 'GU', 'AS', 'PR', 'UM', 'VI' );
-		
-		// If base is US territory
-		if( in_array( $base_country_code, $us_territories ) ) {
-			
-			// ...and destination is US territory, then it is "domestic"
-			if( in_array( $shipping_country, $us_territories ) ) {
-				return true;
-			} else {
-				return false;
-			}
+		if( PR_DHL()->is_shipping_domestic( $shipping_country ) ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
-		} elseif( $shipping_country == $base_country_code ) {
+	protected function is_crossborder_shipment( $order_id ) {   	 
+		$order = wc_get_order( $order_id );
+		$shipping_address = $order->get_address( 'shipping' );
+		$shipping_country = $shipping_address['country'];
+
+		if( PR_DHL()->is_crossborder_shipment( $shipping_country ) ) {
 			return true;
 		} else {
 			return false;
@@ -593,8 +590,10 @@ abstract class PR_DHL_WC_Order {
 
 			if( ! empty( $item['variation_id'] ) ) {
 				$product_variation = wc_get_product($item['variation_id']);
+				// place 'sku' in a variable before validating using 'empty' to be compatible with PHP v5.4
+				$product_sku = $product_variation->get_sku();
 				// Ensure id is string and not int
-				$new_item['sku'] = empty( $product_variation->get_sku() ) ? strval( $item['variation_id'] ) : $product_variation->get_sku();
+				$new_item['sku'] = empty( $product_sku ) ? strval( $item['variation_id'] ) : $product_sku;
 				// $new_item['item_value'] = $product_variation->get_price();
 				$new_item['item_weight'] = $product_variation->get_weight();
 
@@ -602,8 +601,10 @@ abstract class PR_DHL_WC_Order {
 				$new_item['item_description'] .= ' : ' . current( $product_attribute );
 
 			} else {
+				// place 'sku' in a variable before validating using 'empty' to be compatible with PHP v5.4
+				$product_sku = $product->get_sku();
 				// Ensure id is string and not int
-				$new_item['sku'] = empty( $product->get_sku() ) ? strval( $item['product_id'] ) : $product->get_sku();
+				$new_item['sku'] = empty( $product_sku ) ? strval( $item['product_id'] ) : $product_sku;
 				// $new_item['item_value'] = $product->get_price();
 				$new_item['item_weight'] = $product->get_weight();
 			}

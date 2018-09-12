@@ -14,10 +14,6 @@ abstract class PR_DHL_API_SOAP {
 	 */
 	protected $args = array();
 
-
-	// 'LI', 'CH', 'NO'
-	protected $eu_iso2 = array( 'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'RO', 'SI', 'SK', 'ES', 'SE', 'GB');
-
 	/**
 	 * The query string
 	 *

@@ -143,12 +143,9 @@ class PR_DHL_API_SOAP_Label extends PR_DHL_API_SOAP implements PR_DHL_API_Label 
 
 	protected function save_label_file( $order_id, $format, $label_data ) {
 		$label_name = 'dhl-label-' . $order_id . '.' . $format;
-		$upload_path = wp_upload_dir();
-		// PR_DHL()->get_dhl_label_folder();
-		// $label_path = $upload_path['path'] . '/'. $label_name;
-		// $label_url = $upload_path['url'] . '/'. $label_name;
 		$label_path = PR_DHL()->get_dhl_label_folder_dir() . $label_name;
 		$label_url = PR_DHL()->get_dhl_label_folder_url() . $label_name;
+		
 		if( validate_file($label_path) > 0 ) {
 			throw new Exception( __('Invalid file path!', 'pr-shipping-dhl' ) );
 		}
@@ -359,18 +356,6 @@ class PR_DHL_API_SOAP_Label extends PR_DHL_API_SOAP implements PR_DHL_API_Label 
 
 		$this->args = $args;
 	}
-
-
-	protected function is_european_shipment() {
-		
-		// if ( ! empty( $this->args['dhl_settings'][ 'shipper_country' ] ) && ! empty( $this->args['shipping_address']['country'] ) && ( $this->args['dhl_settings'][ 'shipper_country' ] == $this->args['shipping_address']['country'] ) ) {
-		if ( ! empty( $this->args['shipping_address']['country'] ) && in_array( $this->args['shipping_address']['country'], $this->eu_iso2 ) ) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-	
 
 	protected function set_message() {
 		
@@ -672,10 +657,9 @@ class PR_DHL_API_SOAP_Label extends PR_DHL_API_SOAP implements PR_DHL_API_Label 
 				$dhl_label_body['ShipmentOrder']['PrintOnlyIfCodeable'] = array( 'active' => 1 );
 			}
 
-			// If international shipment add export information
-			if( ! $this->is_european_shipment() ) {
+			// Add customs info
+			if( PR_DHL()->is_crossborder_shipment( $this->args['shipping_address']['country'] ) ) {
 
-				// TEST THIS
 				if ( sizeof($this->args['items']) > self::DHL_MAX_ITEMS ) {
 					throw new Exception( sprintf( __('Only %s ordered items can be processed, your order has %s', 'pr-shipping-dhl'), self::DHL_MAX_ITEMS, sizeof($this->args['items']) ) );
 				}
