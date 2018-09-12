@@ -23,10 +23,7 @@ jQuery( function( $ ) {
 		},
 	
 		validate_product_return: function () {
-			// console.log(this);
 			var selected_product = $( '#pr_dhl_product' ).val();
-			// var is_checked = $(this).prop('checked');
-			// console.log(is_checked);
 
 			if( selected_product != 'V01PAK' && selected_product != 'V01PRIO' ) {
 				$('#pr_dhl_return_address_enabled').prop('checked', false).trigger('change');
@@ -38,14 +35,9 @@ jQuery( function( $ ) {
 		},
 
 		show_hide_return: function () {
-			// console.log(this);
 			var is_checked = $( '#pr_dhl_return_address_enabled' ).prop('checked');
-			// var is_checked = $(this).prop('checked');
-			// console.log(is_checked);
 
 			$( '#shipment-dhl-label-form' ).children().each( function () {
-			    // console.log($(this)); // "this" is the current element in the loop
-			    // console.log($(this).attr("class")); // "this" is the current element in the loop
 				
 				// If class exists, and is not 'pr_dhl_return_address_enabled' but is 'pr_dhl_return_' field
 			    if( ( $(this).attr("class") ) &&
@@ -63,14 +55,9 @@ jQuery( function( $ ) {
 		},
 	
 		show_hide_ident: function () {
-			// console.log(this);
 			var is_checked = $( '#pr_dhl_identcheck' ).prop('checked');
-			// var is_checked = $(this).prop('checked');
-			// console.log(is_checked);
 
 			$( '#shipment-dhl-label-form' ).children().each( function () {
-			    // console.log($(this)); // "this" is the current element in the loop
-			    // console.log($(this).attr("class")); // "this" is the current element in the loop
 				
 				// If class exists, and is not 'pr_dhl_return_address_enabled' but is 'pr_dhl_return_' field
 			    if( ( $(this).attr("class") ) &&
@@ -88,7 +75,6 @@ jQuery( function( $ ) {
 		},
 
 		save_dhl_label: function () {
-			// console.log(dhl_label_data);
 			// Remove any errors from last attempt to create label
 			$( '#shipment-dhl-label-form .wc_dhl_error' ).remove();
 
@@ -112,10 +98,7 @@ jQuery( function( $ ) {
 				$('#shipment-dhl-label-form').each(function(i, div) {
 
 				    $(div).find('input').each(function(j, element){
-				        // $(element).attr('disabled','disabled');
-				        // console.log( $(element).attr('name') );
 				        if( $(element).attr('type') == 'checkbox' ) {
-				        	// console.log($(element).prop('checked'));
 				        	if ( $(element).prop('checked') ) {
 					        	data[ $(element).attr('name') ] = 'yes';
 				        	} else {
@@ -127,22 +110,16 @@ jQuery( function( $ ) {
 				    });
 
 				    $(div).find('select').each(function(j, element){
-				        // $(element).attr('disabled','disabled');
-				        // console.log( $(element).attr('name') );
 			        	data[ $(element).attr('name') ] = $(element).val();
 				    });
 
 				    $(div).find('textarea').each(function(j, element){
-				        // $(element).attr('disabled','disabled');
-				        // console.log( $(element).attr('name') );
 			        	data[ $(element).attr('name') ] = $(element).val();
 				    });
 		    	});
 		    });
 			
-			// console.log(data);
 			$.post( woocommerce_admin_meta_boxes.ajax_url, data, function( response ) {
-				console.log(response);
 				$( '#shipment-dhl-label-form' ).unblock();
 				if ( response.error ) {
 					$( '#shipment-dhl-label-form' ).append('<p class="wc_dhl_error">' + response.error + '</p>');

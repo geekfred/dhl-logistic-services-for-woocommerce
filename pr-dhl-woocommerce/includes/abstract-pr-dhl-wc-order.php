@@ -293,6 +293,18 @@ abstract class PR_DHL_WC_Order {
 			return '';
 		}
 
+		$label_tracking_info = $this->get_dhl_label_tracking( $order_id );
+		// Check whether the label has already been created or not
+		if( empty( $label_tracking_info ) ) {
+			return '';
+		}
+		
+		// If no 'label_path' isset but a 'label_url' is set them return it...
+		// ... this indicates an old download style label!
+		if ( ! isset( $label_tracking_info['label_path'] ) && isset( $label_tracking_info['label_url'] ) ){
+			return $label_tracking_info['label_url'];
+		}
+
 		// Override URL with our solution's download label endpoint:
 		return site_url( '/' . self::DHL_DOWNLOAD_ENDPOINT . '/' . $order_id );
 	}
@@ -574,6 +586,11 @@ abstract class PR_DHL_WC_Order {
 			$new_item['item_value'] = ( $item['line_total'] / $item['qty'] );
 
 			$product = wc_get_product( $item['product_id'] );
+
+			// If product does not exist, i.e. deleted go to next one
+			if ( empty( $product ) ) {
+				continue;
+			}
 
 		    $country_value = get_post_meta( $item['product_id'], '_dhl_manufacture_country', true );
 		    if( ! empty( $country_value ) ) {
@@ -1014,11 +1031,6 @@ abstract class PR_DHL_WC_Order {
 	public function process_download_label() {
 	    global $wp_query;
 
-	    // Ensure anyone downloading a file can edit orders
-	    if ( ! current_user_can( 'edit_shop_orders' ) ) {
-			return;
-		}
-
 		if ( ! isset($wp_query->query_vars[ self::DHL_DOWNLOAD_ENDPOINT ] ) ) {
 			return;
 		}
@@ -1045,6 +1057,7 @@ abstract class PR_DHL_WC_Order {
                 ));
 			}
 
+			$redirect_url  = admin_url( 'edit.php?post_type=shop_order' );
 	    } else {
 	    	$order_id = $endpoint_param;
 
@@ -1062,13 +1075,14 @@ abstract class PR_DHL_WC_Order {
                     'type' => 'error'
                 ));
 			}
+			
+			$redirect_url  = admin_url( 'post.php?post=' . $order_id . '&action=edit' );
 	    }
 
 	    update_option( '_pr_dhl_bulk_action_confirmation', $array_messages );
 
 	    // If there are errors redirect to the shop_orders and display error
-	    if ( ! $this->has_error_message( $array_messages ) ) {
-			$redirect_url  = admin_url( 'edit.php?post_type=shop_order' );
+	    if ( $this->has_error_message( $array_messages ) ) {
 			wp_redirect( $redirect_url );
 			exit;
 		}

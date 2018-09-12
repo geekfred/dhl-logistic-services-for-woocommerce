@@ -105,28 +105,11 @@ jQuery(document).ready(function($) {
       $( document.body ).on( 'change', '#shipping_dhl_address_type', this.address_type );
       
       wc_checkout_dhl_parcelfinder.address_type();
-      // $('.woocommerce-checkout #shipping_dhl_address_type').change(function() {
-          // console.log('address type');
-          // wc_checkout_dhl_parcelfinder.address_type;
-      // });
 
       $( 'form#checkout_dhl_parcel_finder' ).submit( this.submit );
     },
     address_type: function() {
-        // console.log('addres type');
         var address_type = $('.woocommerce-checkout #shipping_dhl_address_type').val();
-        // console.log(address_type);
-        /*
-        if (address_type == 'dhl_packstation') {
-          $( '.woocommerce-checkout #shipping_dhl_postnum_br_field' ).hide();        
-          $( '.woocommerce-checkout #shipping_dhl_postnum_ps_field' ).show();        
-        } else if (address_type == 'dhl_branch') {
-          $( '.woocommerce-checkout #shipping_dhl_postnum_ps_field' ).hide();        
-          $( '.woocommerce-checkout #shipping_dhl_postnum_br_field' ).show();        
-        } else {
-          $( '.woocommerce-checkout #shipping_dhl_postnum_ps_field' ).hide();        
-          $( '.woocommerce-checkout #shipping_dhl_postnum_br_field' ).hide();        
-        }*/
 
         if (address_type == 'dhl_packstation') {
           $( '.woocommerce-checkout #shipping_dhl_postnum_field' ).show();
@@ -144,48 +127,19 @@ jQuery(document).ready(function($) {
         }
     },
     init_form: function() {
-      // console.log('init form');
-      /*
-      var gmap_city = $('.woocommerce-checkout #shipping_city').val();
-      console.log(gmap_city);
-      if ( ! gmap_city ) {
-        gmap_city = $('.woocommerce-checkout #billing_city').val();
-        console.log(gmap_city);
-      }
-      $('#dhl_billing_postcode').val(gmap_postcode);
-      */
-      // var gmap_country = $('.woocommerce-checkout #shipping_country').val();
-      // console.log(gmap_country);
-      // if ( ! gmap_country ) {
+      
       var gmap_country = $('.woocommerce-checkout #billing_country').val();
-      // }
       $('#dhl_parcelfinder_country').val( gmap_country );
 
-      // var gmap_postcode = $('.woocommerce-checkout #shipping_postcode').val();
-      // console.log(gmap_postcode);
-      // if ( ! gmap_postcode ) {
       var gmap_postcode = $('.woocommerce-checkout #billing_postcode').val();
-      // }
       $('#dhl_parcelfinder_postcode').val( gmap_postcode );
 
-      // var gmap_city = $('.woocommerce-checkout #shipping_city').val();
-      // console.log(gmap_city);
-      // if ( ! gmap_city ) {
       var gmap_city = $('.woocommerce-checkout #billing_city').val();
-      // }
       $('#dhl_parcelfinder_city').val( gmap_city );
 
-      // var gmap_address_1 = $('.woocommerce-checkout #shipping_address_1').val();
-      // console.log(gmap_address_1);
-      // if ( ! gmap_address_1 ) {
       var gmap_address_1 = $('.woocommerce-checkout #billing_address_1').val();
-      // }
 
-      // var gmap_address_2 = $('.woocommerce-checkout #shipping_address_2').val();
-      // console.log(gmap_address_2);
-      // if ( ! gmap_address_2 ) {
       var gmap_address_2 = $('.woocommerce-checkout #billing_address_2').val();
-      // }
 
       var gmap_address = gmap_address_1 + ' ' + gmap_address_2;
 
@@ -234,9 +188,7 @@ jQuery(document).ready(function($) {
         success:  function( parcelShopsJSON ) {
           $( '.woocommerce-error, .woocommerce-message' ).remove();
           $form.removeClass( 'processing' ).unblock();
-          // console.log(parcelshops);
           if ( parcelShopsJSON ) {
-            // alert(code);
             var parcelShopsRes = JSON.parse( parcelShopsJSON );
 
             if( parcelShopsRes.error ) {
@@ -255,9 +207,6 @@ jQuery(document).ready(function($) {
       return false;
     },
     populateMap: function() {
-      // alert('populateMap');
-      // var parcel_res_js = JSON.parse( wc_checkout_dhl_parcelfinder.parcelShops );
-      // console.log(parcel_res_js);
       if( ! wc_checkout_dhl_parcelfinder.parcelShops ) {
         return;
       }
@@ -274,28 +223,14 @@ jQuery(document).ready(function($) {
 
       var infoWinArray = [];
       $.each(wc_checkout_dhl_parcelfinder.parcelShops, function(key,value) {
-        // console.log(key);
-        // console.log(value);
-        // var uluru = {lat: -25.363, lng: 131.044};
         var uluru = {lat: value.location.latitude, lng: value.location.longitude};
-        /*
-          Title
-          Address
-          Opening hours
-          Select button
-       */
-
-        // var contentString = value.location.psfTimeinfos;
 
         // Get opening times
         var openingTimes = '<h5 class="parcel_subtitle">' + pr_dhl_checkout_frontend.opening_times + '</h5>';
         var prev_day = 0;
         var day_of_week;
         $.each(value.psfTimeinfos, function(key_times,value_times) {
-          // console.log(key_times);
-          // console.log(value_times);
           if( value_times.type == 'openinghour' ) {
-            // console.log(value_times.weekday);
             switch (value_times.weekday) {
               case 1:
                 day_of_week = pr_dhl_checkout_frontend.monday;
@@ -344,8 +279,6 @@ jQuery(document).ready(function($) {
         var shopServicesParking = ': ' + pr_dhl_checkout_frontend.no;
         var shopServicesHandicap = ': ' + pr_dhl_checkout_frontend.no;
         $.each(value.psfServicetypes, function(key_services,value_services) {
-          // console.log(key_times);
-          // console.log(value_times);
           switch (value_services) {
             case 'parking':
               shopServicesParking = ': ' + pr_dhl_checkout_frontend.yes;
@@ -438,16 +371,6 @@ jQuery(document).ready(function($) {
       $.each(wc_checkout_dhl_parcelfinder.parcelShops, function(key,value) {
 
         if( value.id == parcelShopId ) {
-          // console.log(value);
-          // if( ! $('#ship-to-different-address-checkbox').is(":checked") ) {
-          //   $('#ship-to-different-address-checkbox').prop('checked', true).trigger('change');
-          // }
-
-
-          // $("label[for='shipping_company']").text( pr_dhl_checkout_frontend.post_number );
-          // $("label[for='shipping_company']").css('display', 'inline');
-          // $("label[for='shipping_company']").after( ' ' + pr_dhl_checkout_frontend.post_number_tip );
-
           switch (value.shopType) {
             case 'packStation':
               var shop_name = pr_dhl_checkout_frontend.packstation;
@@ -480,37 +403,10 @@ jQuery(document).ready(function($) {
       });
     }
   };
-
-  // initParcelFinderMap();
-
-  /* This is basic - uses default settings */
-  // $("a#dhl_parcel_finder").fancybox({
-  //   'autoDimensions' : false,
-  //   'width' : 800,
-  //   'height' : 800
-  //   });
   
   $("[data-fancybox]").fancybox({
     modal: true
   });
 
   wc_checkout_dhl_parcelfinder.init();
-
-
-  /* Using custom settings 
-  
-  $("a#inline").fancybox({
-    'hideOnContentClick': true
-  });*/
-
-  /* Apply fancybox to multiple items 
-  
-  $("a.group").fancybox({
-    'transitionIn'  : 'elastic',
-    'transitionOut' : 'elastic',
-    'speedIn'   : 600, 
-    'speedOut'    : 200, 
-    'overlayShow' : false
-  });*/
-  
 });
