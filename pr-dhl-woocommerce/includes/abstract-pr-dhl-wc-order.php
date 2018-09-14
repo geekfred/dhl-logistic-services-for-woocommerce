@@ -555,8 +555,8 @@ abstract class PR_DHL_WC_Order {
 			// unset( $shipping_address['last_name'] );
 		}
 		
-		// If not USA, then change state from ISO code to name
-		if ( $shipping_address['country'] != 'US' ) {
+		// If not USA or Australia, then change state from ISO code to name
+		if ( $shipping_address['country'] != 'US' && $shipping_address['country'] != 'AU' ) {
 			// Get all states for a country
 			$states = WC()->countries->get_states( $shipping_address['country'] );
 
